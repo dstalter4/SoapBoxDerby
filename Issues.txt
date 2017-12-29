@@ -1,0 +1,5 @@
+1. Use gyros to determine angle.
+2. Second limit switch for brake.
+3. Solder resistor to autonomous switch.
+4. Wire up LEDs to digital outputs for visual state indications.
+5. Use Raspberry Pi and communicate with Arduino via serial connection.
