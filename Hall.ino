@@ -8,6 +8,8 @@
 ///
 /// Edit History:
 /// - dts 28-DEC-2017 Created from Hall sensor methods in Sensors.ino.
+/// - dts 02-JAN-2018 Change interrupt handlers to not touch interrupt enable
+///                   state and increment counters only on rising edges.
 ///
 /// Copyright (c) 2018 David Stalter
 ///
@@ -41,27 +43,40 @@
 /// Method: LeftHallSensorInterruptHandler
 ///
 /// Details:  Interrupt handler for when the left hall sensor triggers.
-///           See https://playground.arduino.cc/Code/Interrupts.
+///           See https://playground.arduino.cc/Code/Interrupts and the AVR
+///           ATmega328P datasheet.
 ////////////////////////////////////////////////////////////////////////////////
 void SoapBoxDerbyCar::LeftHallSensorInterruptHandler()
 {
-  // Set the visual LED for this sensor based on the
-  // current state of the magnetic field.
-  static volatile bool leftLedState = static_cast<bool>(digitalRead(LEFT_HALL_SENSOR_PIN));
+  // The Atmel architecture guarantees that the Global
+  // Interrupt Enable bit (SREG.I) is cleared on interrupt
+  // entry.  A RETI instruction on ISR exit will re-enable
+  // this bit.  Executing interrupts() and noInterrupts()
+  // expand to SEI and CLI instructions, which could turn
+  // nested interrupts back on.  This implies the low level
+  // operating system code does not keep track of nested
+  // interrupt levels.  We'll assume that the context
+  // switching code properly handles all of this and not
+  // touch interrupt enabling/disable ourselves.
   
-  // Interrupts are probably already locked since this
-  // is an ISR handler, but re-disable to be safe.
-  noInterrupts();
+  // 'volatile' because this is an ISR and the Arduino
+  // documentation recommends it.
+  static volatile InterruptEdgeDirection leftSensorInterruptEdge;
   
-  // Increase the counter
-  GetSingletonInstance()->IncrementLeftHallSensorCount();
+  // Get the value of the pin so we can distinguish
+  // if this is a rising or falling edge interrupt.
+  leftSensorInterruptEdge = static_cast<InterruptEdgeDirection>(digitalRead(LEFT_HALL_SENSOR_PIN));
+  
+  // Only increment the sensor value if we see a
+  // rising edge (magnetic field appearing).
+  if (leftSensorInterruptEdge == RISING_EDGE)
+  {
+    // Increase the counter
+    GetSingletonInstance()->IncrementLeftHallSensorCount();
+  }
   
   // Update the visual LED
-  leftLedState = !leftLedState;
-  digitalWrite(DEBUG_OUTPUT_1_LED_PIN, static_cast<int>(leftLedState));
-  
-  // Re-enable interrupts
-  interrupts();
+  digitalWrite(DEBUG_OUTPUT_1_LED_PIN, static_cast<int>(leftSensorInterruptEdge));
 }
 
 
@@ -69,27 +84,40 @@ void SoapBoxDerbyCar::LeftHallSensorInterruptHandler()
 /// Method: RightHallSensorInterruptHandler
 ///
 /// Details:  Interrupt handler for when the right hall sensor triggers.
-///           See https://playground.arduino.cc/Code/Interrupts.
+///           See https://playground.arduino.cc/Code/Interrupts and the AVR
+///           ATmega328P datasheet.
 ////////////////////////////////////////////////////////////////////////////////
 void SoapBoxDerbyCar::RightHallSensorInterruptHandler()
 {
-  // Set the visual LED for this sensor based on the
-  // current state of the magnetic field.
-  static volatile bool rightLedState = static_cast<bool>(digitalRead(RIGHT_HALL_SENSOR_PIN));
+  // The Atmel architecture guarantees that the Global
+  // Interrupt Enable bit (SREG.I) is cleared on interrupt
+  // entry.  A RETI instruction on ISR exit will re-enable
+  // this bit.  Executing interrupts() and noInterrupts()
+  // expand to SEI and CLI instructions, which could turn
+  // nested interrupts back on.  This implies the low level
+  // operating system code does not keep track of nested
+  // interrupt levels.  We'll assume that the context
+  // switching code properly handles all of this and not
+  // touch interrupt enabling/disable ourselves.
   
-  // Interrupts are probably already locked since this
-  // is an ISR handler, but re-disable to be safe.
-  noInterrupts();
+  // 'volatile' because this is an ISR and the Arduino
+  // documentation recommends it.
+  static volatile InterruptEdgeDirection rightSensorInterruptEdge;
   
-  // Increase the counter
-  GetSingletonInstance()->IncrementRightHallSensorCount();
+  // Get the value of the pin so we can distinguish
+  // if this is a rising or falling edge interrupt.
+  rightSensorInterruptEdge = static_cast<InterruptEdgeDirection>(digitalRead(RIGHT_HALL_SENSOR_PIN));
+  
+  // Only increment the sensor value if we see a
+  // rising edge (magnetic field appearing).
+  if (rightSensorInterruptEdge == RISING_EDGE)
+  {
+    // Increase the counter
+    GetSingletonInstance()->IncrementRightHallSensorCount();
+  }
   
   // Update the visual LED
-  rightLedState = !rightLedState;
-  digitalWrite(DEBUG_OUTPUT_2_LED_PIN, static_cast<int>(rightLedState));
-  
-  // Re-enable interrupts
-  interrupts();
+  digitalWrite(DEBUG_OUTPUT_2_LED_PIN, static_cast<int>(rightSensorInterruptEdge));
 }
 
 

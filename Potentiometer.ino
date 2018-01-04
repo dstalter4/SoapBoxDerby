@@ -7,6 +7,7 @@
 ///
 /// Edit History:
 /// - dts 28-DEC-2017 Created from potentiometer methods in Sensors.ino.
+/// - dts 02-JAN-2018 Silence warnings.
 ///
 /// Copyright (c) 2018 David Stalter
 ///
@@ -199,6 +200,10 @@ void SoapBoxDerbyCar::ReadPotentiometers()
   float outerArcLength = outerWheelRadius * axleAngleDiff;
 
   float arcLengthRatio = outerArcLength / innerArcLength;
+  
+  // Silence warnings (for now)
+  (void)axleDirection;
+  (void)arcLengthRatio;
 
   /*
   Serial.print("Raw pot value: ");
