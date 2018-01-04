@@ -7,6 +7,7 @@
 ///
 /// Edit History:
 /// - dts 28-DEC-2017 Created from encoder methods in Sensors.ino.
+/// - dts 02-JAN-2018 Silence warnings.
 ///
 /// Copyright (c) 2018 David Stalter
 ///
@@ -45,8 +46,6 @@
 void SoapBoxDerbyCar::CenterSteeringByEncoder()
 {
   Serial.println("Centering steering by encoder...");
-  
-  bool bCalibrationSuccessful = true;
   
   // Calibrate max left
   SetSteeringSpeedControllerValue(AUTO_CENTERING_CALIBRATION_LEFT_SPEED);
@@ -202,8 +201,8 @@ void SoapBoxDerbyCar::CalibrateSteeringEncoder()
       //Serial.println(startTime);
       //Serial.print("End Time: ");
       //Serial.println(endTime);
-      //Serial.print("Time Delta: ");
-      //Serial.println(endTime - startTime);
+      Serial.print("Time Delta: ");
+      Serial.println(endTime - startTime);
       
       Serial.println();
       Serial.println();
@@ -272,8 +271,8 @@ void SoapBoxDerbyCar::ReadEncoders()
   // steering jitter.  This logic *might* handle the case where the
   // absolute position is near zero by ensuring too large of a delta is
   // also not seen.
-  const unsigned int STEERING_ENCODER_JITTER_MIN = 1000;
-  const unsigned int STEERING_ENCODER_JITTER_MAX = 4050;
+  const int STEERING_ENCODER_JITTER_MIN = 1000;
+  const int STEERING_ENCODER_JITTER_MAX = 4050;
 
   int steeringEncoderDifference = abs(m_SteeringEncoderValue - previousSteeringEncoderValue);
   if ((steeringEncoderDifference > STEERING_ENCODER_JITTER_MIN) && (steeringEncoderDifference < STEERING_ENCODER_JITTER_MAX))

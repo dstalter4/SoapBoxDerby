@@ -12,6 +12,7 @@
 /// - dts 16-DEC-2017 Add second limit switch for brake and potentiometer.
 /// - dts 28-DEC-2017 Switched to SoapBoxDerbyCar class based approach, update
 ///                   copyright and add GPL header.
+/// - dts 02-JAN-2018 Add InterruptEdgeDirection enum.  Silence warnings.
 ///
 /// Copyright (c) 2018 David Stalter
 ///
@@ -39,7 +40,7 @@
 
 // MACROS
 #define ASSERT(condition)         \
-  do                              \ 
+  do                              \
   {                               \
     if (!(condition))             \
     {                             \
@@ -101,7 +102,16 @@ private:
   {
     LEFT,
     RIGHT,
+    CENTER,
     NONE
+  };
+  
+  // Interrupt edge direction
+  enum InterruptEdgeDirection
+  {
+    // These must match digital read values
+    FALLING_EDGE  = LOW,
+    RISING_EDGE   = HIGH
   };
   
   
@@ -171,7 +181,7 @@ private:
   
   // CONTROLLER
   // Channels start at '1', not '0'.  Increase array size by one for easy indexing.
-  static const unsigned int NUM_CONTROLLER_INPUT_CHANNELS = 6;
+  static const int NUM_CONTROLLER_INPUT_CHANNELS = 6;
   int m_ControllerChannelInputs[NUM_CONTROLLER_INPUT_CHANNELS + 1];
   bool m_bBrakeSwitch;
   bool m_bMasterEnable;
@@ -259,12 +269,12 @@ private:
   static const unsigned long  APPLY_BRAKE_TIME_MS                     =  750;
   
   // I/O
-  static const unsigned int   YAW_INPUT_CHANNEL                       = 1;
-  static const unsigned int   BRAKE_INPUT_CHANNEL                     = 5;
-  static const unsigned int   EMERGENCY_STOP_INPUT_CHANNEL            = 6;
-  static const unsigned int   NUM_MAGNETS_PER_WHEEL                   = 6;
-  static const unsigned int   POTENTIOMETER_MAX_VALUE                 = 1024;
-  static const unsigned int   ENCODER_MAX_VALUE                       = 4096;
+  static const int            YAW_INPUT_CHANNEL                       = 1;
+  static const int            BRAKE_INPUT_CHANNEL                     = 5;
+  static const int            EMERGENCY_STOP_INPUT_CHANNEL            = 6;
+  static const int            NUM_MAGNETS_PER_WHEEL                   = 6;
+  static const int            POTENTIOMETER_MAX_VALUE                 = 1024;
+  static const int            ENCODER_MAX_VALUE                       = 4096;
   
   // MISC
   static const int            OFF                                     = 0;
