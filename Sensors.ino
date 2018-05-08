@@ -48,18 +48,18 @@
 void SoapBoxDerbyCar::ConfigureSensors()
 {
   // Configure the sensor pin modes
-  pinMode(AUTONOMOUS_SWITCH_PIN, INPUT);
+  pinMode(AUTONOMOUS_SWITCH_PIN, INPUT_PULLUP);
   
   pinMode(STEERING_ENCODER_PIN, INPUT);
 
-  pinMode(LEFT_LIMIT_SWITCH_PIN, INPUT);
-  pinMode(RIGHT_LIMIT_SWITCH_PIN, INPUT);
-  pinMode(BRAKE_RELEASE_LIMIT_SWITCH_PIN, INPUT);
-  pinMode(BRAKE_APPLY_LIMIT_SWITCH_PIN, INPUT);
+  pinMode(LEFT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(RIGHT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(BRAKE_RELEASE_LIMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(BRAKE_APPLY_LIMIT_SWITCH_PIN, INPUT_PULLUP);
   
   // Configure the Hall sensors for polling OR interrupt mode, not both
-  //pinMode(LEFT_HALL_SENSOR_PIN, INPUT);
-  //pinMode(RIGHT_HALL_SENSOR_PIN, INPUT);
+  //pinMode(LEFT_HALL_SENSOR_PIN, INPUT_PULLUP);
+  //pinMode(RIGHT_HALL_SENSOR_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(LEFT_HALL_SENSOR_PIN), LeftHallSensorInterruptHandler, CHANGE);
   attachInterrupt(digitalPinToInterrupt(RIGHT_HALL_SENSOR_PIN), RightHallSensorInterruptHandler, CHANGE);
   
