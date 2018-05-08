@@ -192,7 +192,7 @@ void SoapBoxDerbyCar::UpdateSpeedControllers()
   const int FULL_RIGHT_INPUT = 1986;
   const int FULL_LEFT_INPUT = 1000;
   const int TRUE_NEUTRAL_INPUT = 1490;
-
+  
   // Read and normalize the input value from true neutral (output here is ~ -500 -> +500).
   double scaledDriveInput = static_cast<double>(m_ControllerChannelInputs[YAW_INPUT_CHANNEL] - TRUE_NEUTRAL_INPUT);
   

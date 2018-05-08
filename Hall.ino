@@ -65,7 +65,7 @@ void SoapBoxDerbyCar::LeftHallSensorInterruptHandler()
   
   // Get the value of the pin so we can distinguish
   // if this is a rising or falling edge interrupt.
-  leftSensorInterruptEdge = static_cast<InterruptEdgeDirection>(digitalRead(LEFT_HALL_SENSOR_PIN));
+  leftSensorInterruptEdge = static_cast<InterruptEdgeDirection>(!digitalRead(LEFT_HALL_SENSOR_PIN));
   
   // Only increment the sensor value if we see a
   // rising edge (magnetic field appearing).
@@ -106,7 +106,7 @@ void SoapBoxDerbyCar::RightHallSensorInterruptHandler()
   
   // Get the value of the pin so we can distinguish
   // if this is a rising or falling edge interrupt.
-  rightSensorInterruptEdge = static_cast<InterruptEdgeDirection>(digitalRead(RIGHT_HALL_SENSOR_PIN));
+  rightSensorInterruptEdge = static_cast<InterruptEdgeDirection>(!digitalRead(RIGHT_HALL_SENSOR_PIN));
   
   // Only increment the sensor value if we see a
   // rising edge (magnetic field appearing).

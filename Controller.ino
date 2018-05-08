@@ -93,7 +93,7 @@ void SoapBoxDerbyCar::ReadControllerInput()
   //m_ControllerChannelInputs[3]                            = pulseIn(CH3_INPUT_PIN, HIGH, PULSE_IN_TIMEOUT_US);
   //m_ControllerChannelInputs[4]                            = pulseIn(CH4_INPUT_PIN, HIGH, PULSE_IN_TIMEOUT_US);
   m_ControllerChannelInputs[BRAKE_INPUT_CHANNEL]          = pulseIn(CH5_INPUT_PIN, HIGH, PULSE_IN_TIMEOUT_US);
-  m_ControllerChannelInputs[EMERGENCY_STOP_INPUT_CHANNEL] = pulseIn(CH6_INPUT_PIN, HIGH, PULSE_IN_TIMEOUT_US);
+  m_ControllerChannelInputs[MASTER_ENABLE_INPUT_CHANNEL]  = pulseIn(CH6_INPUT_PIN, HIGH, PULSE_IN_TIMEOUT_US);
   
   // Inputs range from ~1000 (off) to ~1500 (on).
   // Pick a value approximately in the middle.
@@ -111,7 +111,7 @@ void SoapBoxDerbyCar::ReadControllerInput()
   }
 
   // Update the state of the master enable
-  if (m_ControllerChannelInputs[EMERGENCY_STOP_INPUT_CHANNEL] < SWITCH_THRESHHOLD_VALUE)
+  if (m_ControllerChannelInputs[MASTER_ENABLE_INPUT_CHANNEL] < SWITCH_THRESHHOLD_VALUE)
   {
     m_bMasterEnable = false;
   }

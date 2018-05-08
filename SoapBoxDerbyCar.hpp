@@ -7,6 +7,9 @@
 ///           be used in the other .ino files in this project.  It is also used
 ///           as the primary control of behavior via the constants.
 ///
+/// Note:     When wiring things with a resitor, the resistor goes from voltage
+///           to signal.  Use 1k-5k ohm resistors.
+///
 /// Edit History:
 /// - dts 19-OCT-2017 Documentation and headers added.
 /// - dts 16-DEC-2017 Add second limit switch for brake and potentiometer.
@@ -243,14 +246,14 @@ private:
   static const unsigned int   CH3_INPUT_PIN                           = 4;
   static const unsigned int   CH4_INPUT_PIN                           = 5;
   static const unsigned int   CH5_INPUT_PIN                           = 6;    // Derby car brake control
-  static const unsigned int   CH6_INPUT_PIN                           = 7;    // Emergency shutoff (disable all input control)
-  static const unsigned int   BRAKING_TALON_PIN                       = 8;
-  static const unsigned int   STEERING_TALON_PIN                      = 9;
-  static const unsigned int   STEERING_ENCODER_PIN                    = 10;
+  static const unsigned int   CH6_INPUT_PIN                           = 7;    // Master enable (disable all input control)
+  static const unsigned int   STEERING_TALON_PIN                      = 8;
+  static const unsigned int   BRAKING_TALON_PIN                       = 9;
+  static const unsigned int   LEFT_LIMIT_SWITCH_PIN                   = 10;
   static const unsigned int   RIGHT_LIMIT_SWITCH_PIN                  = 11;
-  static const unsigned int   LEFT_LIMIT_SWITCH_PIN                   = 12;
-  static const unsigned int   BRAKE_RELEASE_LIMIT_SWITCH_PIN          = 13;
-  static const unsigned int   BRAKE_APPLY_LIMIT_SWITCH_PIN            = 14;
+  static const unsigned int   BRAKE_RELEASE_LIMIT_SWITCH_PIN          = 12;
+  static const unsigned int   BRAKE_APPLY_LIMIT_SWITCH_PIN            = 13;
+  static const unsigned int   STEERING_ENCODER_PIN                    = 14;
   static const unsigned int   SONAR_TRIGGER_PIN                       = 15;
   static const unsigned int   SONAR_ECHO_PIN                          = 16;
   static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 17;
@@ -271,7 +274,7 @@ private:
   // I/O
   static const int            YAW_INPUT_CHANNEL                       = 1;
   static const int            BRAKE_INPUT_CHANNEL                     = 5;
-  static const int            EMERGENCY_STOP_INPUT_CHANNEL            = 6;
+  static const int            MASTER_ENABLE_INPUT_CHANNEL             = 6;
   static const int            NUM_MAGNETS_PER_WHEEL                   = 6;
   static const int            POTENTIOMETER_MAX_VALUE                 = 1024;
   static const int            ENCODER_MAX_VALUE                       = 4096;
