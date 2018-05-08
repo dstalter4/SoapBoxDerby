@@ -98,7 +98,7 @@ void SoapBoxDerbyCar::DisplayValues()
     Serial.print("Brake input: ");
     Serial.println(m_ControllerChannelInputs[BRAKE_INPUT_CHANNEL]);
     Serial.print("Emergency stop input: ");
-    Serial.println(m_ControllerChannelInputs[EMERGENCY_STOP_INPUT_CHANNEL]);
+    Serial.println(m_ControllerChannelInputs[MASTER_ENABLE_INPUT_CHANNEL]);
     Serial.print("Steering encoder: ");
     Serial.println(m_SteeringEncoderValue);
     Serial.print("Steering encoder multiplier: ");
