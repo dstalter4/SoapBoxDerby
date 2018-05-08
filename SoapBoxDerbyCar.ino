@@ -131,7 +131,7 @@ void SoapBoxDerbyCar::Run()
     {
       // Be sure to update the controller values
       ReadControllerInput();
-
+      
       // Check for a switch back to manual control
       if (!IsAutonomousSwitchSet())
       {
@@ -162,6 +162,7 @@ void SoapBoxDerbyCar::Run()
     ReadControllerInput();
     
     // Read the Hall sensors
+    // Note: Currently interrupt driven
     //ReadHallSensors();
   
     // Read the limit switches
