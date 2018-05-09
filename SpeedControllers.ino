@@ -254,29 +254,3 @@ void SoapBoxDerbyCar::UpdateSpeedControllers()
   }
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-/// Method: RampSpeedControllerUpDownTest
-///
-/// Details:  Test method to demonstrate a speed controller can be properly
-///           communicated with.  It goes from full reverse to full forward and
-///           back, allowing a user to examine the speed controller LED color
-///           to verify behavior.
-////////////////////////////////////////////////////////////////////////////////
-void SoapBoxDerbyCar::RampSpeedControllerUpDownTest(PwmSpeedController * pSpeedController)
-{
-  // Ramp up from full reverse to full forward
-  for (int value = -100; value <= 100; value++)
-  {
-    pSpeedController->SetSpeed(value);
-    delay(TENTH_OF_A_SECOND_DELAY_MS);
-  }
-
-  // Ramp down from full forward to full reverse
-  for (int value = 100; value >= -100; value--)
-  {
-    pSpeedController->SetSpeed(value);
-    delay(TENTH_OF_A_SECOND_DELAY_MS);
-  }
-}
-

@@ -148,7 +148,6 @@ private:
   void ReleaseBrake();
   void EmergencyStop();
   void UpdateSpeedControllers();
-  void RampSpeedControllerUpDownTest(PwmSpeedController * pSpeedController);
   
   // SENSORS
   void ConfigureSensors();
