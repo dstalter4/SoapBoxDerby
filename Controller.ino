@@ -5,6 +5,14 @@
 /// Details:  Contains the main logic and workflow for interacting with the user
 ///           input controller with a soap box derby car.
 ///
+/// Note: The input channels are as follows:
+///       1. Right stick x-axis (right is + from neutral, left is - from neutral)
+///       2. Right stick y-axis (top is + from neutral, bottom is - from neutral)
+///       3. Left stick y-axis (top is + from neutral, bottom is - from neutral)
+///       4. Left stick x-axis (right is + from neutral, left is - from neutral)
+///       5. SWA
+///       6. SWD
+///
 /// Edit History:
 /// - dts 19-OCT-2017 Documentation and headers added.
 /// - dts 28-DEC-2017 Switched to SoapBoxDerbyCar class based approach, update
@@ -81,6 +89,26 @@ bool SoapBoxDerbyCar::IsControllerOn()
 
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Method: IsRecalibrationRequested
+///
+/// Details:  Checks for a recalibration request on the controller.
+////////////////////////////////////////////////////////////////////////////////
+bool SoapBoxDerbyCar::IsRecalibrationRequested()
+{
+  // Make sure the controller is on and the input stick was moved sufficiently far
+  if ((m_ControllerChannelInputs[RECALIBRATE_INPUT_CHANNEL] != 0)
+      &&(m_ControllerChannelInputs[RECALIBRATE_INPUT_CHANNEL] < RECALIBRATE_INPUT_CHANNEL_THRESHOLD))
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 /// Method: ReadControllerInput
 ///
 /// Details:  Reads and stores all controller input values via pulseIn().
@@ -91,7 +119,7 @@ void SoapBoxDerbyCar::ReadControllerInput()
   m_ControllerChannelInputs[YAW_INPUT_CHANNEL]            = pulseIn(CH1_INPUT_PIN, HIGH, PULSE_IN_TIMEOUT_US);
   //m_ControllerChannelInputs[2]                            = pulseIn(CH2_INPUT_PIN, HIGH, PULSE_IN_TIMEOUT_US);
   //m_ControllerChannelInputs[3]                            = pulseIn(CH3_INPUT_PIN, HIGH, PULSE_IN_TIMEOUT_US);
-  //m_ControllerChannelInputs[4]                            = pulseIn(CH4_INPUT_PIN, HIGH, PULSE_IN_TIMEOUT_US);
+  m_ControllerChannelInputs[RECALIBRATE_INPUT_CHANNEL]    = pulseIn(CH4_INPUT_PIN, HIGH, PULSE_IN_TIMEOUT_US);
   m_ControllerChannelInputs[BRAKE_INPUT_CHANNEL]          = pulseIn(CH5_INPUT_PIN, HIGH, PULSE_IN_TIMEOUT_US);
   m_ControllerChannelInputs[MASTER_ENABLE_INPUT_CHANNEL]  = pulseIn(CH6_INPUT_PIN, HIGH, PULSE_IN_TIMEOUT_US);
   
