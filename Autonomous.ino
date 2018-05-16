@@ -62,6 +62,7 @@ void SoapBoxDerbyCar::AutonomousRoutine()
   // Indicate autonomous is executing, in case any logic
   // elsewhere with the sensors/motor controllers cares.
   m_bIsAutonomousExecuting = true;
+  digitalWrite(AUTONOMOUS_LED_PIN, HIGH);
   
   // Reset the hall sensor encoders for this autonomous run
   ResetHallSensorCounts();
@@ -91,22 +92,22 @@ void SoapBoxDerbyCar::AutonomousRoutine()
     
     // If the left side is reading ahead, the car is drifting
     // right and we need to turn back left.
-    if (m_LeftHallCount > m_RightHallCount)
+    if (m_LeftHallCount >= (m_RightHallCount + AUTO_HALL_SENSOR_COUNT_MAX_DIFF))
     {
       SetSteeringSpeedControllerValue(AUTO_TURN_LEFT_SPEED);
     }
     // If the right side is reading ahead, the car is drifting
     // left and we need to turn back right.
-    else if (m_RightHallCount > m_LeftHallCount)
+    else if (m_RightHallCount >= (m_LeftHallCount + AUTO_HALL_SENSOR_COUNT_MAX_DIFF))
     {
       SetSteeringSpeedControllerValue(AUTO_TURN_RIGHT_SPEED);
     }
     // Tracking equally, no steering adjustment needed.
     else
     {
-      SetSteeringSpeedControllerValue(OFF);
+      CenterSteeringByPotentiometer();
     }
-  }
+  } // End main autonomous while loop
 
   // Autonomous time expired, stop the motors
   ApplyBrake();
@@ -118,6 +119,7 @@ void SoapBoxDerbyCar::AutonomousRoutine()
   
   // Autonomous is no longer executing
   m_bIsAutonomousExecuting = false;
+  digitalWrite(AUTONOMOUS_LED_PIN, LOW);
   
   Serial.println("Autonomous done executing...");
   

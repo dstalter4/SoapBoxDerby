@@ -100,13 +100,13 @@ void SoapBoxDerbyCar::SetSteeringSpeedControllerValue(int value)
 ///           controller with a value that will cause the car to enter a safe,
 ///           known state.
 ////////////////////////////////////////////////////////////////////////////////
-void SoapBoxDerbyCar::EmergencyStop()
+void SoapBoxDerbyCar::EmergencyStop(SoapBoxDerbyCar * pInstance)
 {
   // Emergency stop will ignore steering and unconditionally apply the brake
-  m_SteeringDirection = NONE;
-  m_pSteeringTalon->SetSpeed(OFF);
+  pInstance->m_SteeringDirection = NONE;
+  pInstance->m_pSteeringTalon->SetSpeed(OFF);
   
-  ApplyBrake();
+  pInstance->ApplyBrake();
 }
 
 
@@ -251,32 +251,6 @@ void SoapBoxDerbyCar::UpdateSpeedControllers()
   else
   {
     ApplyBrake();
-  }
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-/// Method: RampSpeedControllerUpDownTest
-///
-/// Details:  Test method to demonstrate a speed controller can be properly
-///           communicated with.  It goes from full reverse to full forward and
-///           back, allowing a user to examine the speed controller LED color
-///           to verify behavior.
-////////////////////////////////////////////////////////////////////////////////
-void SoapBoxDerbyCar::RampSpeedControllerUpDownTest(PwmSpeedController * pSpeedController)
-{
-  // Ramp up from full reverse to full forward
-  for (int value = -100; value <= 100; value++)
-  {
-    pSpeedController->SetSpeed(value);
-    delay(TENTH_OF_A_SECOND_DELAY_MS);
-  }
-
-  // Ramp down from full forward to full reverse
-  for (int value = 100; value >= -100; value--)
-  {
-    pSpeedController->SetSpeed(value);
-    delay(TENTH_OF_A_SECOND_DELAY_MS);
   }
 }
 

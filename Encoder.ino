@@ -45,6 +45,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 void SoapBoxDerbyCar::CenterSteeringByEncoder()
 {
+  // TODO: This should be part of calibrate, not center.
+  
   Serial.println("Centering steering by encoder...");
   
   // Calibrate max left

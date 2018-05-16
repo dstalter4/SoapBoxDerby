@@ -70,6 +70,9 @@ public:
   
   // Main control flow for the soap box derby car
   void Run();
+
+  // Safety to function to perform an emergency stop
+  static void EmergencyStop(SoapBoxDerbyCar * pInstance);
   
   //////////////////////////////////////////////////////////////////////////////
   /// Method: CreateSingletonInstance
@@ -89,7 +92,7 @@ public:
   inline static SoapBoxDerbyCar * GetSingletonInstance()
   {
     // Make sure the instance has been created
-    ASSERT(m_pSoapBoxDerbyCar != nullptr);
+    //ASSERT(m_pSoapBoxDerbyCar != nullptr);
     
     return m_pSoapBoxDerbyCar;
   }
@@ -135,10 +138,12 @@ private:
   bool IsAutonomousSwitchSet();
   void CenterSteeringByEncoder();
   void CenterSteeringByPotentiometer();
+  void CenterSteeringAxle();
   
   // CONTROLLER
-  bool IsControllerOn();
   void ConfigureController();
+  bool IsControllerOn();
+  bool IsRecalibrationRequested();
   void ReadControllerInput();
   
   // MOTOR CONTROL
@@ -146,9 +151,7 @@ private:
   void SetSteeringSpeedControllerValue(int value);
   void ApplyBrake();
   void ReleaseBrake();
-  void EmergencyStop();
   void UpdateSpeedControllers();
-  void RampSpeedControllerUpDownTest(PwmSpeedController * pSpeedController);
   
   // SENSORS
   void ConfigureSensors();
@@ -165,6 +168,7 @@ private:
   
   void ReadLimitSwitches();
   
+  void CalibrateSteeringPotentiometer();
   void ReadPotentiometers();
   
   void ReadSonarSensors();
@@ -215,12 +219,15 @@ private:
   int m_FrontAxlePotentiometerValue;
   int m_FrontAxlePotMaxLeftValue;
   int m_FrontAxlePotMaxRightValue;
+  int m_FrontAxlePotCenterValue;
+  int m_LastGoodPotValue;
   
   // SONAR SENSORS
   int m_SonarDistanceInches;
   
   // MISC
   SteeringDirection m_SteeringDirection;
+  bool m_bCalibrationComplete;
   
   // SINGLETON INSTANCE
   static SoapBoxDerbyCar * m_pSoapBoxDerbyCar;
@@ -235,16 +242,18 @@ private:
   // AUTONOMOUS
   static const int            AUTO_CENTERING_CALIBRATION_LEFT_SPEED   = -30;
   static const int            AUTO_CENTERING_CALIBRATION_RIGHT_SPEED  =  30;
+  static const int            AUTO_CENTERING_CALIBRATION_CENTER_SPEED = -20;
   static const int            AUTO_CENTERING_CALIBRATION_DELAY_MS     =  2000;
   static const int            AUTO_TURN_LEFT_SPEED                    = -80;
   static const int            AUTO_TURN_RIGHT_SPEED                   =  80;
-  static const unsigned long  AUTO_MAX_LENGTH_MS                      =  30000;
+  static const int            AUTO_HALL_SENSOR_COUNT_MAX_DIFF         =  2;
+  static const unsigned long  AUTO_MAX_LENGTH_MS                      =  300000;  // Five minutes
   
   // DIGITAL PINS
   static const unsigned int   CH1_INPUT_PIN                           = 2;    // Derby car yaw control
   static const unsigned int   CH2_INPUT_PIN                           = 3;
   static const unsigned int   CH3_INPUT_PIN                           = 4;
-  static const unsigned int   CH4_INPUT_PIN                           = 5;
+  static const unsigned int   CH4_INPUT_PIN                           = 5;    // Recalibrate derby car
   static const unsigned int   CH5_INPUT_PIN                           = 6;    // Derby car brake control
   static const unsigned int   CH6_INPUT_PIN                           = 7;    // Master enable (disable all input control)
   static const unsigned int   STEERING_TALON_PIN                      = 8;
@@ -261,6 +270,7 @@ private:
   static const unsigned int   RIGHT_HALL_SENSOR_PIN                   = 19;   // Must be a board interrupt pin
   static const unsigned int   DEBUG_OUTPUT_1_LED_PIN                  = 20;
   static const unsigned int   DEBUG_OUTPUT_2_LED_PIN                  = 21;
+  static const unsigned int   AUTONOMOUS_LED_PIN                      = 22;
   
   // ANALOG PINS
   static const unsigned int   FRONT_AXLE_POTENTIOMETER_PIN            = 0;
@@ -273,9 +283,12 @@ private:
   
   // I/O
   static const int            YAW_INPUT_CHANNEL                       = 1;
+  static const int            RECALIBRATE_INPUT_CHANNEL               = 4;
   static const int            BRAKE_INPUT_CHANNEL                     = 5;
   static const int            MASTER_ENABLE_INPUT_CHANNEL             = 6;
   static const int            NUM_MAGNETS_PER_WHEEL                   = 6;
+  static const int            POTENTIOMETER_READ_SPACING_DELAY_MS     = 100;
+  static const int            POTENTIOMETER_MAX_JITTER_VALUE          = 5;
   static const int            POTENTIOMETER_MAX_VALUE                 = 1024;
   static const int            ENCODER_MAX_VALUE                       = 4096;
   

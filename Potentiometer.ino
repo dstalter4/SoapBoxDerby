@@ -38,14 +38,19 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Method: CenterSteeringByPotentiometer
+/// Method: CalibrateSteeringPotentiometer
 ///
 /// Details:  Automatically turns the steering to max left, then to max right,
 ///           and finally attempts to move back to true center.
+///
+/// Note: Pot is wired up where left -> right is decreasing.
 ////////////////////////////////////////////////////////////////////////////////
-void SoapBoxDerbyCar::CenterSteeringByPotentiometer()
+void SoapBoxDerbyCar::CalibrateSteeringPotentiometer()
 {
+  static int calibrationAttempt = 0;
   Serial.println("Centering steering by pot...");
+  Serial.print("Calibration attempt #");
+  Serial.println(++calibrationAttempt);
   
   // Calibrate max left
   
@@ -95,13 +100,71 @@ void SoapBoxDerbyCar::CenterSteeringByPotentiometer()
   // Save off the value
   m_FrontAxlePotMaxRightValue = m_FrontAxlePotentiometerValue;
   
+  // Compute and save off the center value
+  m_FrontAxlePotCenterValue = m_FrontAxlePotMaxRightValue + ((m_FrontAxlePotMaxLeftValue - m_FrontAxlePotMaxRightValue) / 2);
+  
+  // Return to center
+  SetSteeringSpeedControllerValue(AUTO_CENTERING_CALIBRATION_CENTER_SPEED);
+  do
+  {
+    // Don't read too fast, or the potentiometer values may be inaccurate
+    delay(POTENTIOMETER_READ_SPACING_DELAY_MS);
+    ReadPotentiometers();
+  }
+  while (m_FrontAxlePotentiometerValue < m_FrontAxlePotCenterValue);
+  
+  // Back to center, motor off
+  SetSteeringSpeedControllerValue(OFF);
+  
+  // Pause to let things settle
+  delay(AUTO_CENTERING_CALIBRATION_DELAY_MS);
+  
+  m_LastGoodPotValue = m_FrontAxlePotCenterValue;
+  m_bCalibrationComplete = true;
+  
   Serial.print("Left calibration pot value: ");
   Serial.println(m_FrontAxlePotMaxLeftValue);
   Serial.print("Right calibration pot value: ");
   Serial.println(m_FrontAxlePotMaxRightValue);
+  Serial.print("Center calibration pot value: ");
+  Serial.println(m_FrontAxlePotCenterValue);
+  Serial.print("Final calibration position: ");
+  ReadPotentiometers();
+  Serial.println(m_FrontAxlePotentiometerValue);
   Serial.print("Pot diff: ");
   Serial.println(m_FrontAxlePotMaxLeftValue  - m_FrontAxlePotMaxRightValue);
   Serial.println("Centering calibration complete...");
+  Serial.println();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Method: CenterSteeringByPotentiometer
+///
+/// Details:  Automatically turns the steering back to the center value found
+///           during power up calibration.
+////////////////////////////////////////////////////////////////////////////////
+void SoapBoxDerbyCar::CenterSteeringByPotentiometer()
+{
+  // Get the latest potetiometer value
+  ReadPotentiometers();
+  
+  // If the pot value is greater then center, the angle is to the left,
+  // so need to move back to the right.
+  if (m_FrontAxlePotentiometerValue >= (m_FrontAxlePotCenterValue + POTENTIOMETER_MAX_JITTER_VALUE))
+  {
+    SetSteeringSpeedControllerValue(AUTO_TURN_RIGHT_SPEED);
+  }
+  // If the pot value is less then center, the angle is to the right,
+  // so need to move back to the left.
+  else if (m_FrontAxlePotentiometerValue <= (m_FrontAxlePotCenterValue - POTENTIOMETER_MAX_JITTER_VALUE))
+  {
+    SetSteeringSpeedControllerValue(AUTO_TURN_LEFT_SPEED);
+  }
+  else
+  {
+    SetSteeringSpeedControllerValue(OFF);
+  }
 }
 
 
@@ -149,24 +212,40 @@ void SoapBoxDerbyCar::CenterSteeringByPotentiometer()
 void SoapBoxDerbyCar::ReadPotentiometers()
 {
   m_FrontAxlePotentiometerValue = analogRead(FRONT_AXLE_POTENTIOMETER_PIN);
-  
-  // Pot is wired up where left -> right is decreasing
-  // Find the center value based on calibration routine
-  int centerPotPosition = m_FrontAxlePotMaxRightValue + ((m_FrontAxlePotMaxLeftValue - m_FrontAxlePotMaxRightValue) / 2);
 
+  if (m_bCalibrationComplete)
+  {
+    // If the reading is too far beyond what is expected from calibration, discard
+    // this current reading and use the last good one.
+    if ( (m_FrontAxlePotentiometerValue > (m_FrontAxlePotMaxLeftValue + POTENTIOMETER_MAX_JITTER_VALUE)) ||
+         (m_FrontAxlePotentiometerValue < (m_FrontAxlePotMaxRightValue - POTENTIOMETER_MAX_JITTER_VALUE)) )
+    {
+      m_FrontAxlePotentiometerValue = m_LastGoodPotValue;
+    }
+    // Reading was good, save it off for potential future use
+    else
+    {
+      m_LastGoodPotValue = m_FrontAxlePotentiometerValue;
+    }
+  }
+  
+  // Current implementation only reads the value from the sensor.
+  // The logic below may be useful in the future when more complex behavior is required.
+  return;
+  
   // Find the potentiometer's diff from true center
   int potDiff = 0;
   SteeringDirection axleDirection = NONE;
-  if (m_FrontAxlePotentiometerValue > centerPotPosition)
+  if (m_FrontAxlePotentiometerValue > m_FrontAxlePotCenterValue)
   {
     // Axle angled to the left
-    potDiff = m_FrontAxlePotentiometerValue - centerPotPosition;
+    potDiff = m_FrontAxlePotentiometerValue - m_FrontAxlePotCenterValue;
     axleDirection = LEFT;
   }
-  else if (m_FrontAxlePotentiometerValue < centerPotPosition)
+  else if (m_FrontAxlePotentiometerValue < m_FrontAxlePotCenterValue)
   {
     // Axle angled to the right
-    potDiff = centerPotPosition - m_FrontAxlePotentiometerValue;
+    potDiff = m_FrontAxlePotCenterValue - m_FrontAxlePotentiometerValue;
     axleDirection = RIGHT;
   }
   else
