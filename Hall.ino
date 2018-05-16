@@ -4,7 +4,9 @@
 ///
 /// Details:  Contains the main logic and workflow for Hall sensors on a soap
 ///           box derby car.  See https://playground.arduino.cc/Code/Interrupts
-///           for information on using Arduino interrupts.
+///           for information on using Arduino interrupts.  Also see
+///           https://www.sunfounder.com/learn/sensor_kit_v1_for_Arduino/lesson-1-hall-sensor-sensor-kit-v1-for-arduino.html
+///           for some guidance on the Hall sensor.
 ///
 /// Edit History:
 /// - dts 28-DEC-2017 Created from Hall sensor methods in Sensors.ino.
