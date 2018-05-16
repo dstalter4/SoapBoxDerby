@@ -57,9 +57,11 @@ void SoapBoxDerbyCar::ConfigureSensors()
   pinMode(BRAKE_RELEASE_LIMIT_SWITCH_PIN, INPUT_PULLUP);
   pinMode(BRAKE_APPLY_LIMIT_SWITCH_PIN, INPUT_PULLUP);
   
-  // Configure the Hall sensors for polling OR interrupt mode, not both
-  //pinMode(LEFT_HALL_SENSOR_PIN, INPUT_PULLUP);
-  //pinMode(RIGHT_HALL_SENSOR_PIN, INPUT_PULLUP);
+  // Even though the Hall sensor pins will be used for interrupts, still
+  // configure them as inputs will pull-up resistors.  The pins will be read in
+  // the ISR and it doesn't hurt interrupt edge detection to set them up this way.
+  pinMode(LEFT_HALL_SENSOR_PIN, INPUT_PULLUP);
+  pinMode(RIGHT_HALL_SENSOR_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(LEFT_HALL_SENSOR_PIN), LeftHallSensorInterruptHandler, CHANGE);
   attachInterrupt(digitalPinToInterrupt(RIGHT_HALL_SENSOR_PIN), RightHallSensorInterruptHandler, CHANGE);
   
