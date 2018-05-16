@@ -94,8 +94,11 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   m_FrontAxlePotentiometerValue(0),
   m_FrontAxlePotMaxLeftValue(0),
   m_FrontAxlePotMaxRightValue(0),
+  m_FrontAxlePotCenterValue(0),
+  m_LastGoodPotValue(0),
   m_SonarDistanceInches(0),
-  m_SteeringDirection(NONE)
+  m_SteeringDirection(NONE),
+  m_bCalibrationComplete(false)
 {
   // Configure pin modes
   ConfigureController();
@@ -106,7 +109,7 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   //ApplyBrake();
 
   // Center the steering
-  //CenterSteeringByPotentiometer();
+  CalibrateSteeringPotentiometer();
 }
 
 
@@ -131,6 +134,12 @@ void SoapBoxDerbyCar::Run()
     {
       // Be sure to update the controller values
       ReadControllerInput();
+      
+      // Check for a request to recalibrate
+      if (IsRecalibrationRequested())
+      {
+        CalibrateSteeringPotentiometer();
+      }
       
       // Check for a switch back to manual control
       if (!IsAutonomousSwitchSet())
