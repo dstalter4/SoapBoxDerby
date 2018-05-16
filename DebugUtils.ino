@@ -46,6 +46,7 @@ void SoapBoxDerbyCar::ConfigureDebugPins()
 {
   pinMode(DEBUG_OUTPUT_1_LED_PIN, OUTPUT);
   pinMode(DEBUG_OUTPUT_2_LED_PIN, OUTPUT);
+  pinMode(AUTONOMOUS_LED_PIN, OUTPUT);
 }
 
 
@@ -66,10 +67,13 @@ void SoapBoxDerbyCar::ProcessAssert()
     digitalWrite(DEBUG_OUTPUT_2_LED_PIN, static_cast<int>(ledState));
 
     ledState = !ledState;
+
+    if (m_pSoapBoxDerbyCar != nullptr)
+    {
+      EmergencyStop(m_pSoapBoxDerbyCar);
+    }
     
-    GetSingletonInstance()->EmergencyStop();
-    
-    const int ASSERT_DELAY_MS = 250;    
+    const int ASSERT_DELAY_MS = 1000;    
     delay(ASSERT_DELAY_MS);
   }
 }
