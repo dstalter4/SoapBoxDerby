@@ -100,13 +100,13 @@ void SoapBoxDerbyCar::SetSteeringSpeedControllerValue(int value)
 ///           controller with a value that will cause the car to enter a safe,
 ///           known state.
 ////////////////////////////////////////////////////////////////////////////////
-void SoapBoxDerbyCar::EmergencyStop()
+void SoapBoxDerbyCar::EmergencyStop(SoapBoxDerbyCar * pInstance)
 {
   // Emergency stop will ignore steering and unconditionally apply the brake
-  m_SteeringDirection = NONE;
-  m_pSteeringTalon->SetSpeed(OFF);
+  pInstance->m_SteeringDirection = NONE;
+  pInstance->m_pSteeringTalon->SetSpeed(OFF);
   
-  ApplyBrake();
+  pInstance->ApplyBrake();
 }
 
 
