@@ -95,6 +95,8 @@ bool SoapBoxDerbyCar::IsControllerOn()
 ////////////////////////////////////////////////////////////////////////////////
 bool SoapBoxDerbyCar::IsRecalibrationRequested()
 {
+  const int RECALIBRATE_INPUT_CHANNEL_THRESHOLD = 1100;
+  
   // Make sure the controller is on and the input stick was moved sufficiently far
   if ((m_ControllerChannelInputs[RECALIBRATE_INPUT_CHANNEL] != 0)
       &&(m_ControllerChannelInputs[RECALIBRATE_INPUT_CHANNEL] < RECALIBRATE_INPUT_CHANNEL_THRESHOLD))
