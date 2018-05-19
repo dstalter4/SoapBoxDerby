@@ -48,6 +48,7 @@ SoapBoxDerbyCar * SoapBoxDerbyCar::m_pSoapBoxDerbyCar = nullptr;
 void setup()
 {
   // Enable the UART
+  const long int SERIAL_PORT_BAUD_RATE = 115200;
   Serial.begin(SERIAL_PORT_BAUD_RATE);
   Serial.println("Initializing...");
   
