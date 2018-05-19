@@ -295,6 +295,7 @@ private:
   // MISC
   static const int            OFF                                     = 0;
   static const int            ON                                      = 100;
+  static const int            SERIAL_PORT_BAUD_RATE                   = 115200;
   static const unsigned int   TENTH_OF_A_SECOND_DELAY_MS              = 100;
   static const unsigned long  PULSE_IN_TIMEOUT_US                     = 50000;
   

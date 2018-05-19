@@ -48,7 +48,7 @@ SoapBoxDerbyCar * SoapBoxDerbyCar::m_pSoapBoxDerbyCar = nullptr;
 void setup()
 {
   // Enable the UART
-  Serial.begin(115200);
+  Serial.begin(SERIAL_PORT_BAUD_RATE);
   Serial.println("Initializing...");
   
   // Create the soap box derby car singleton
