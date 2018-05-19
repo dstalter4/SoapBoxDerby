@@ -91,6 +91,7 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   inline static SoapBoxDerbyCar * GetSingletonInstance()
   {
+    // @todo: Figure out why this is occasionally tripping.
     // Make sure the instance has been created
     //ASSERT(m_pSoapBoxDerbyCar != nullptr);
     
