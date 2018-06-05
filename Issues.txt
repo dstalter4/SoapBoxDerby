@@ -1,9 +1,11 @@
-1. DONE - More debug LEDs (i.e. to indicate autonomous state).
-2. DONE - Remote control switch to re-run centering routine.
-3. Serial console issue when no port is connected.
-4. Second limit switch for brake.
-5. Improve potentiometer centering algorithm/consistency.
-6. DONE - Positive lead battery connector.
-7. Sonar sensors for debugging near walls.
-8. Use gyros to determine angle.
-9. Use Raspberry Pi and communicate with Arduino via serial connection.
+ 1. DONE - More debug LEDs (i.e. to indicate autonomous state).
+ 2. DONE - Remote control switch to re-run centering routine.
+ 3. More control inputs via switches or push buttons.
+ 4. Serial console issue when no port is connected.
+ 5. DONE - Second limit switch for brake.
+ 6. DONE - Limit switches as interrupts.
+ 7. Improve potentiometer centering algorithm/consistency.
+ 8. DONE - Positive lead battery connector.
+ 9. Sonar sensors for debugging near walls.
+10. Use gyros to determine angle.
+11. Use Raspberry Pi and communicate with Arduino via serial connection.
