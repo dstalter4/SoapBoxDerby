@@ -91,6 +91,7 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   inline static SoapBoxDerbyCar * GetSingletonInstance()
   {
+    // @todo: Figure out why this is occasionally tripping.
     // Make sure the instance has been created
     //ASSERT(m_pSoapBoxDerbyCar != nullptr);
     
@@ -149,8 +150,8 @@ private:
   // MOTOR CONTROL
   void SetSteeringDirection(int value);
   void SetSteeringSpeedControllerValue(int value);
-  void ApplyBrake();
-  void ReleaseBrake();
+  void ApplyBrake(bool bWaitForDone = false);
+  void ReleaseBrake(bool bWaitForDone = false);
   void UpdateSpeedControllers();
   
   // SENSORS
@@ -165,7 +166,11 @@ private:
   inline void IncrementRightHallSensorCount() { m_RightHallCount++; }
   void ResetHallSensorCounts();
   void ReadHallSensors();
-  
+
+  static void SteeringLimitSwitchInterruptHandler();
+  static void BrakeLimitSwitchInterruptHandler();
+  inline void DisableSteeringSpeedController() { m_pSteeringSpeedController->SetSpeed(OFF); }
+  inline void DisableBrakeSpeedController() { m_pBrakeSpeedController->SetSpeed(OFF); }
   void ReadLimitSwitches();
   
   void CalibrateSteeringPotentiometer();
@@ -194,8 +199,8 @@ private:
   bool m_bMasterEnable;
   
   // SPEED CONTROLLERS
-  PwmSpeedController * m_pSteeringTalon;
-  PwmSpeedController * m_pBrakingTalon;
+  PwmSpeedController * m_pSteeringSpeedController;
+  PwmSpeedController * m_pBrakeSpeedController;
   bool m_bBrakeApplied;
   
   // ENCODERS
@@ -249,6 +254,8 @@ private:
   static const int            AUTO_HALL_SENSOR_COUNT_MAX_DIFF         =  2;
   static const unsigned long  AUTO_MAX_LENGTH_MS                      =  300000;  // Five minutes
   
+  // On the Mega, digital pins 2, 3, and 18-21 are interrupts.
+  
   // DIGITAL PINS
   static const unsigned int   CH1_INPUT_PIN                           = 2;    // Derby car yaw control
   static const unsigned int   CH2_INPUT_PIN                           = 3;
@@ -256,21 +263,25 @@ private:
   static const unsigned int   CH4_INPUT_PIN                           = 5;    // Recalibrate derby car
   static const unsigned int   CH5_INPUT_PIN                           = 6;    // Derby car brake control
   static const unsigned int   CH6_INPUT_PIN                           = 7;    // Master enable (disable all input control)
-  static const unsigned int   STEERING_TALON_PIN                      = 8;
-  static const unsigned int   BRAKING_TALON_PIN                       = 9;
-  static const unsigned int   LEFT_LIMIT_SWITCH_PIN                   = 10;
-  static const unsigned int   RIGHT_LIMIT_SWITCH_PIN                  = 11;
+  static const unsigned int   STEERING_SPEED_CONTROLLER_PIN           = 8;
+  static const unsigned int   BRAKE_SPEED_CONTROLLER_PIN              = 9;
+  static const unsigned int   STEERING_LEFT_LIMIT_SWITCH_PIN          = 10;
+  static const unsigned int   STEERING_RIGHT_LIMIT_SWITCH_PIN         = 11;
   static const unsigned int   BRAKE_RELEASE_LIMIT_SWITCH_PIN          = 12;
   static const unsigned int   BRAKE_APPLY_LIMIT_SWITCH_PIN            = 13;
   static const unsigned int   STEERING_ENCODER_PIN                    = 14;
   static const unsigned int   SONAR_TRIGGER_PIN                       = 15;
   static const unsigned int   SONAR_ECHO_PIN                          = 16;
-  static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 17;
   static const unsigned int   LEFT_HALL_SENSOR_PIN                    = 18;   // Must be a board interrupt pin
   static const unsigned int   RIGHT_HALL_SENSOR_PIN                   = 19;   // Must be a board interrupt pin
-  static const unsigned int   DEBUG_OUTPUT_1_LED_PIN                  = 20;
-  static const unsigned int   DEBUG_OUTPUT_2_LED_PIN                  = 21;
-  static const unsigned int   AUTONOMOUS_LED_PIN                      = 22;
+  static const unsigned int   STEERING_LIMIT_SWITCHES_INTERRUPT_PIN   = 20;   // Must be a board interrupt pin
+  static const unsigned int   BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN      = 21;   // Must be a board interrupt pin
+  static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 25;
+  static const unsigned int   AUTONOMOUS_LED_PIN                      = 26;
+  static const unsigned int   DEBUG_OUTPUT_1_LED_PIN                  = 27;
+  static const unsigned int   DEBUG_OUTPUT_2_LED_PIN                  = 28;
+  static const unsigned int   DEBUG_OUTPUT_3_LED_PIN                  = 29;
+  static const unsigned int   DEBUG_OUTPUT_4_LED_PIN                  = 30;
   
   // ANALOG PINS
   static const unsigned int   FRONT_AXLE_POTENTIOMETER_PIN            = 0;
@@ -279,7 +290,6 @@ private:
   static const int            MIN_OUTPUT_PERCENTAGE                   =  10;
   static const int            RELEASE_BRAKE_PERCENTAGE                =  25;
   static const int            APPLY_BRAKE_PERCENTAGE                  = -40;
-  static const unsigned long  APPLY_BRAKE_TIME_MS                     =  750;
   
   // I/O
   static const int            YAW_INPUT_CHANNEL                       = 1;

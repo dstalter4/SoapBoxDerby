@@ -59,7 +59,8 @@ void SoapBoxDerbyCar::LeftHallSensorInterruptHandler()
   // operating system code does not keep track of nested
   // interrupt levels.  We'll assume that the context
   // switching code properly handles all of this and not
-  // touch interrupt enabling/disable ourselves.
+  // touch interrupt enabling/disabling ourselves via
+  // interrupts()/noInterrupts().
   
   // 'volatile' because this is an ISR and the Arduino
   // documentation recommends it.
@@ -100,7 +101,8 @@ void SoapBoxDerbyCar::RightHallSensorInterruptHandler()
   // operating system code does not keep track of nested
   // interrupt levels.  We'll assume that the context
   // switching code properly handles all of this and not
-  // touch interrupt enabling/disable ourselves.
+  // touch interrupt enabling/disabling ourselves via
+  // interrupts()/noInterrupts().
   
   // 'volatile' because this is an ISR and the Arduino
   // documentation recommends it.

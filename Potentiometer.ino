@@ -51,6 +51,8 @@ void SoapBoxDerbyCar::CalibrateSteeringPotentiometer()
   Serial.println("Centering steering by pot...");
   Serial.print("Calibration attempt #");
   Serial.println(++calibrationAttempt);
+
+  // @todo: Debug why this sometimes gets stuck.
   
   // Calibrate max left
   

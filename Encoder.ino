@@ -45,7 +45,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 void SoapBoxDerbyCar::CenterSteeringByEncoder()
 {
-  // TODO: This should be part of calibrate, not center.
+  // @todo: This should be part of calibrate, not center.
   
   Serial.println("Centering steering by encoder...");
   
@@ -71,7 +71,7 @@ void SoapBoxDerbyCar::CenterSteeringByEncoder()
   int rightEncoderCalibrationValue = m_SteeringEncoderValue;
   int rightEncoderRange = (ENCODER_MAX_VALUE * m_SteeringEncoderMultiplier) + rightEncoderCalibrationValue;
 
-  // TODO: Check and update based on the multiplier to calculate max left/right.
+  // @todo: Check and update based on the multiplier to calculate max left/right.
   
   // Attempt to find and move to center
   int totalEncoderRange = rightEncoderRange - leftEncoderRange;
@@ -84,7 +84,7 @@ void SoapBoxDerbyCar::CenterSteeringByEncoder()
   }
   SetSteeringSpeedControllerValue(OFF);
 
-  // TODO: If the starting position is very
+  // @todo: If the starting position is very
   // far right, the center value ends up
   // being negative and we fail to calibrate.
   Serial.print("Current value: ");
@@ -128,8 +128,8 @@ void SoapBoxDerbyCar::CenterSteeringByEncoder()
 ////////////////////////////////////////////////////////////////////////////////
 void SoapBoxDerbyCar::CalibrateSteeringEncoder()
 {
-  // TODO: Calibrate under full load, otherwise results are meaningless.
-  // TODO: Iterate left/right, relying on the limit switches
+  // @todo: Calibrate under full load, otherwise results are meaningless.
+  // @todo: Iterate left/right, relying on the limit switches
   // Use caution with this loop - it does not look at the limit switches.
   // Right now it should only be called with no load.
   for (uint32_t i = 0U; i < 128; i++)
@@ -250,7 +250,7 @@ void SoapBoxDerbyCar::ReadEncoders()
   // Get a new sample reading for this call
   m_SteeringEncoderValue = pulseIn(STEERING_ENCODER_PIN, HIGH, PULSE_IN_TIMEOUT_US);
 
-  // TODO: Have this use the multiplier!
+  // @todo: Have this use the multiplier!
   // Save off minimum value seen
   /*
   if (steeringEncoderValue < minSteeringEncoderValue)
