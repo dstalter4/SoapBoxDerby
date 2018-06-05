@@ -88,7 +88,7 @@ void SoapBoxDerbyCar::SetSteeringSpeedControllerValue(int value)
   }
 
   // Update the speed controller and direction
-  m_pSteeringTalon->SetSpeed(value);
+  m_pSteeringSpeedController->SetSpeed(value);
   SetSteeringDirection(value);
 }
 
@@ -104,7 +104,7 @@ void SoapBoxDerbyCar::EmergencyStop(SoapBoxDerbyCar * pInstance)
 {
   // Emergency stop will ignore steering and unconditionally apply the brake
   pInstance->m_SteeringDirection = NONE;
-  pInstance->m_pSteeringTalon->SetSpeed(OFF);
+  pInstance->m_pSteeringSpeedController->SetSpeed(OFF);
   
   pInstance->ApplyBrake();
 }
@@ -115,30 +115,43 @@ void SoapBoxDerbyCar::EmergencyStop(SoapBoxDerbyCar * pInstance)
 ///
 /// Details:  Applies the soap box derby car brake.
 ///
-/// Note: This function BLOCKS for the configured time.  Be careful when using
-///       it and adjust the APPLY_BRAKE_TIME_MS constant accordingly.
+/// Note: This function can potentially BLOCK until a limit switch is tripped if
+///       bWaitForDone is true.  If bWaitForDone is false, this function MUST be
+///       called continuously to make sure the brake motor is shut off.  Use
+///       this function with caution to not prevent other system critical
+///       operations from running and to not overrun the motor!
 ////////////////////////////////////////////////////////////////////////////////
-void SoapBoxDerbyCar::ApplyBrake()
+void SoapBoxDerbyCar::ApplyBrake(bool bWaitForDone)
 {
-  // TODO: Tie into second brake limit switch.
+  // The limit switches are also tied to interrupt pins.
+  // The car be configured to use the interrupts, polling
+  // of the pins, or both.  Check Sensors.ino for more info.
   
-  // If the brake hasn't been applied yet
-  if (!m_bBrakeApplied)
+  if (m_BrakeApplyLimitSwitchValue != 1)
   {
-    // Start a timer.  Applying the brake works by driving the brake motor
-    // for a certain period of time.
-    unsigned long startTime = millis();
-    while ((millis() - startTime) < APPLY_BRAKE_TIME_MS)
+    m_pBrakeSpeedController->SetSpeed(APPLY_BRAKE_PERCENTAGE);
+    
+    // If requested to wait for the brake to be fully applied
+    if (bWaitForDone)
     {
-      m_pBrakingTalon->SetSpeed(APPLY_BRAKE_PERCENTAGE);
+      // Then wait until the limit switch trips
+      while (m_BrakeApplyLimitSwitchValue != 1)
+      {
+        ReadLimitSwitches();
+      }
+      
+      // Motor back off
+      m_pBrakeSpeedController->SetSpeed(OFF);
     }
-
-    // Shut the motor off
-    m_pBrakingTalon->SetSpeed(OFF);
-
-    // Indicate the brake was applied
-    m_bBrakeApplied = true;
   }
+  else
+  {
+    m_pBrakeSpeedController->SetSpeed(OFF);
+  }
+  
+  // Indicate the brake has been applied so calls to release it
+  // properly complete.
+  m_bBrakeApplied = true;
 }
 
 
@@ -147,23 +160,41 @@ void SoapBoxDerbyCar::ApplyBrake()
 ///
 /// Details:  Releases the soap box derby car brake.
 ///
-/// Note: This function MUST be called repeatedly to keep checking the limit
-///       switch and to properly control the speed controller.
-///       For manual control, it will be called from UpdateSpeedControllers.
-///       For autonomous routines, the logic needs to call it in a loop.
+/// Note: This function can potentially BLOCK until a limit switch is tripped if
+///       bWaitForDone is true.  If bWaitForDone is false, this function MUST be
+///       called continuously to make sure the brake motor is shut off.  Use
+///       this function with caution to not prevent other system critical
+///       operations from running and to not overrun the motor!
 ////////////////////////////////////////////////////////////////////////////////
-void SoapBoxDerbyCar::ReleaseBrake()
-{  
+void SoapBoxDerbyCar::ReleaseBrake(bool bWaitForDone)
+{
+  // The limit switches are also tied to interrupt pins.
+  // The car be configured to use the interrupts, polling
+  // of the pins, or both.  Check Sensors.ino for more info.
+  
   // A release of the brake should be continuous, checking the limit
   // switch and updating the motor controller accordingly to make sure
   // gravity doesn't back drive it.
   if (m_BrakeReleaseLimitSwitchValue != 1)
   {
-    m_pBrakingTalon->SetSpeed(RELEASE_BRAKE_PERCENTAGE);
+    m_pBrakeSpeedController->SetSpeed(RELEASE_BRAKE_PERCENTAGE);
+    
+    // If requested to wait for the brake to be fully released
+    if (bWaitForDone)
+    {
+      // Then wait until the limit switch trips
+      while (m_BrakeReleaseLimitSwitchValue != 1)
+      {
+        ReadLimitSwitches();
+      }
+      
+      // Motor back off
+      m_pBrakeSpeedController->SetSpeed(OFF);
+    }
   }
   else
   {
-    m_pBrakingTalon->SetSpeed(OFF);
+    m_pBrakeSpeedController->SetSpeed(OFF);
   }
 
   // Indicate the brake has not been applied so calls to apply it
@@ -219,7 +250,7 @@ void SoapBoxDerbyCar::UpdateSpeedControllers()
   if ((steerOutputValue <= MIN_OUTPUT_PERCENTAGE) && (steerOutputValue >= -MIN_OUTPUT_PERCENTAGE))
   {
     // Not within required control range, no output
-    m_pSteeringTalon->SetSpeed(OFF);
+    m_pSteeringSpeedController->SetSpeed(OFF);
   }
   else
   {
@@ -239,7 +270,7 @@ void SoapBoxDerbyCar::UpdateSpeedControllers()
     }
     
     // Update talon
-    m_pSteeringTalon->SetSpeed(steerOutputValue);
+    m_pSteeringSpeedController->SetSpeed(steerOutputValue);
     SetSteeringDirection(steerOutputValue);
   }
 

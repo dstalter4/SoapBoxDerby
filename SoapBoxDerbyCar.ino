@@ -79,8 +79,8 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   m_ControllerChannelInputs(),
   m_bBrakeSwitch(false),
   m_bMasterEnable(false),
-  m_pSteeringTalon(new PwmSpeedController(STEERING_TALON_PIN)),
-  m_pBrakingTalon(new PwmSpeedController(BRAKING_TALON_PIN)),
+  m_pSteeringSpeedController(new PwmSpeedController(STEERING_SPEED_CONTROLLER_PIN)),
+  m_pBrakeSpeedController(new PwmSpeedController(BRAKE_SPEED_CONTROLLER_PIN)),
   m_bBrakeApplied(false),
   m_SteeringEncoderValue(0),
   m_SteeringEncoderMultiplier(0),
@@ -107,7 +107,7 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   ConfigureDebugPins();
 
   // Apply the brake
-  //ApplyBrake();
+  ApplyBrake(true);
 
   // Center the steering
   CalibrateSteeringPotentiometer();
@@ -127,7 +127,7 @@ void SoapBoxDerbyCar::Run()
     Serial.println("Auto waiting...");
 
     // In case we came from manual control, disable motors
-    ApplyBrake();
+    ApplyBrake(true);
     SetSteeringSpeedControllerValue(OFF);
     
     // Wait until the controller tells auto to start
@@ -195,13 +195,7 @@ void SoapBoxDerbyCar::Run()
     }
     else
     {
-      // No controller communication or enable switch is off,
-      // apply the brake and wait for state change
-      if (!IsControllerOn())
-      {
-        // TEMPORARY!  Remove once second limit switch works.
-        //ApplyBrake();
-      }
+      ApplyBrake();
     }
   
     // Display values to the serial console, if enabled
