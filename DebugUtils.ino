@@ -127,9 +127,9 @@ void SoapBoxDerbyCar::DisplayValues()
     Serial.println(m_RightHallCount);
     
     Serial.print("Left limit switch: ");
-    Serial.println(m_LeftLimitSwitchValue);
+    Serial.println(m_LeftSteeringLimitSwitchValue);
     Serial.print("Right limit switch: ");
-    Serial.println(m_RightLimitSwitchValue);
+    Serial.println(m_RightSteeringLimitSwitchValue);
     Serial.print("Brake release limit switch: ");
     Serial.println(m_BrakeReleaseLimitSwitchValue);
     Serial.print("Brake apply limit switch: ");

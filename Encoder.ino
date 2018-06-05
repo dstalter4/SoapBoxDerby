@@ -51,7 +51,7 @@ void SoapBoxDerbyCar::CenterSteeringByEncoder()
   
   // Calibrate max left
   SetSteeringSpeedControllerValue(AUTO_CENTERING_CALIBRATION_LEFT_SPEED);
-  while (m_LeftLimitSwitchValue != 1)
+  while (m_LeftSteeringLimitSwitchValue != 1)
   {
     ReadLimitSwitches();
     ReadEncoders();
@@ -62,7 +62,7 @@ void SoapBoxDerbyCar::CenterSteeringByEncoder()
 
   // Calibrate max right
   SetSteeringSpeedControllerValue(AUTO_CENTERING_CALIBRATION_RIGHT_SPEED);
-  while (m_RightLimitSwitchValue != 1)
+  while (m_RightSteeringLimitSwitchValue != 1)
   {
     ReadLimitSwitches();
     ReadEncoders();   
@@ -77,7 +77,7 @@ void SoapBoxDerbyCar::CenterSteeringByEncoder()
   int totalEncoderRange = rightEncoderRange - leftEncoderRange;
   int centerEncoderPosition = rightEncoderRange - (totalEncoderRange / 2);
   SetSteeringSpeedControllerValue(AUTO_CENTERING_CALIBRATION_LEFT_SPEED);
-  while (((m_SteeringEncoderValue + (ENCODER_MAX_VALUE * m_SteeringEncoderMultiplier)) > centerEncoderPosition) && (m_LeftLimitSwitchValue != 1))
+  while (((m_SteeringEncoderValue + (ENCODER_MAX_VALUE * m_SteeringEncoderMultiplier)) > centerEncoderPosition) && (m_LeftSteeringLimitSwitchValue != 1))
   {
     ReadLimitSwitches();
     ReadEncoders();
@@ -110,7 +110,7 @@ void SoapBoxDerbyCar::CenterSteeringByEncoder()
   // to properly find the center.  If the right
   // limit switch tripped, we never tried to go
   // back to the center.
-  if (m_LeftLimitSwitchValue == 1 || m_RightLimitSwitchValue == 1)
+  if (m_LeftSteeringLimitSwitchValue == 1 || m_RightSteeringLimitSwitchValue == 1)
   {
     Serial.println("CALIBRATION FAILED!!!");
   }

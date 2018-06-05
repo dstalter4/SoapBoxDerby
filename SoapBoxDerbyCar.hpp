@@ -215,8 +215,8 @@ private:
   volatile unsigned int m_RightHallCount;
   
   // LIMIT SWITCHES
-  int m_LeftLimitSwitchValue;
-  int m_RightLimitSwitchValue;
+  int m_LeftSteeringLimitSwitchValue;
+  int m_RightSteeringLimitSwitchValue;
   int m_BrakeReleaseLimitSwitchValue;
   int m_BrakeApplyLimitSwitchValue;
   

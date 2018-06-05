@@ -52,12 +52,14 @@ void SoapBoxDerbyCar::ConfigureSensors()
   
   pinMode(STEERING_ENCODER_PIN, INPUT);
 
+  // @todo: There are phantom interrupts being triggered by the limit
+  // switches.  Stick to polling mode until the issue can be investigated.
   pinMode(STEERING_LEFT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
   pinMode(STEERING_RIGHT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
   pinMode(BRAKE_RELEASE_LIMIT_SWITCH_PIN, INPUT_PULLUP);
   pinMode(BRAKE_APPLY_LIMIT_SWITCH_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN), SteeringLimitSwitchInterruptHandler, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN), BrakeLimitSwitchInterruptHandler, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN), SteeringLimitSwitchInterruptHandler, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN), BrakeLimitSwitchInterruptHandler, CHANGE);
   
   // Even though the Hall sensor pins will be used for interrupts, still
   // configure them as inputs will pull-up resistors.  The pins will be read in
@@ -149,10 +151,29 @@ void SoapBoxDerbyCar::BrakeLimitSwitchInterruptHandler()
 ////////////////////////////////////////////////////////////////////////////////
 void SoapBoxDerbyCar::ReadLimitSwitches()
 {
-  m_LeftLimitSwitchValue = digitalRead(STEERING_LEFT_LIMIT_SWITCH_PIN);
-  m_RightLimitSwitchValue = digitalRead(STEERING_RIGHT_LIMIT_SWITCH_PIN);
+  m_LeftSteeringLimitSwitchValue = digitalRead(STEERING_LEFT_LIMIT_SWITCH_PIN);
+  m_RightSteeringLimitSwitchValue = digitalRead(STEERING_RIGHT_LIMIT_SWITCH_PIN);
+  
+  if ((m_LeftSteeringLimitSwitchValue == 1) || (m_RightSteeringLimitSwitchValue == 1))
+  {
+    digitalWrite(DEBUG_OUTPUT_3_LED_PIN, HIGH);
+  }
+  else
+  {
+    digitalWrite(DEBUG_OUTPUT_3_LED_PIN, LOW);
+  }
+  
   m_BrakeReleaseLimitSwitchValue = digitalRead(BRAKE_RELEASE_LIMIT_SWITCH_PIN);
   m_BrakeApplyLimitSwitchValue = digitalRead(BRAKE_APPLY_LIMIT_SWITCH_PIN);
+  
+  if ((m_BrakeReleaseLimitSwitchValue == 1) || (m_BrakeApplyLimitSwitchValue == 1))
+  {
+    digitalWrite(DEBUG_OUTPUT_4_LED_PIN, HIGH);
+  }
+  else
+  {
+    digitalWrite(DEBUG_OUTPUT_4_LED_PIN, LOW);
+  }
 }
 
 

@@ -59,7 +59,7 @@ void SoapBoxDerbyCar::CalibrateSteeringPotentiometer()
   // Move to the left limit switch
   SetSteeringSpeedControllerValue(AUTO_CENTERING_CALIBRATION_LEFT_SPEED);
   
-  while (m_LeftLimitSwitchValue != 1)
+  while (m_LeftSteeringLimitSwitchValue != 1)
   {
     // Keep updating limit switches and potentiometer
     ReadLimitSwitches();
@@ -83,7 +83,7 @@ void SoapBoxDerbyCar::CalibrateSteeringPotentiometer()
   // Move to the right limit switch
   SetSteeringSpeedControllerValue(AUTO_CENTERING_CALIBRATION_RIGHT_SPEED);
   
-  while (m_RightLimitSwitchValue != 1)
+  while (m_RightSteeringLimitSwitchValue != 1)
   {
     // Keep updating limit switches and potentiometer
     ReadLimitSwitches();

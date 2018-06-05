@@ -73,13 +73,13 @@ void SoapBoxDerbyCar::SetSteeringSpeedControllerValue(int value)
     
   // If the value is negative, steering is going
   // left.  Make sure the limit switch isn't tripped.
-  if ((value < 0) && (m_LeftLimitSwitchValue == 1))
+  if ((value < 0) && (m_LeftSteeringLimitSwitchValue == 1))
   {
     value = OFF;
   }
   // If the value is positive, steering is going
   // right.  Make sure the limit switch isn't tripped.
-  else if ((value > 0) && (m_RightLimitSwitchValue == 1))
+  else if ((value > 0) && (m_RightSteeringLimitSwitchValue == 1))
   {
     value = OFF;
   }
@@ -258,13 +258,13 @@ void SoapBoxDerbyCar::UpdateSpeedControllers()
     ReadLimitSwitches();
     
     // Check the left limit switch
-    if ((steerOutputValue < 0) && (m_LeftLimitSwitchValue == 1))
+    if ((steerOutputValue < 0) && (m_LeftSteeringLimitSwitchValue == 1))
     {
       steerOutputValue = OFF;
     }
 
     // Check the right limit switch
-    if ((steerOutputValue > 0) && (m_RightLimitSwitchValue == 1))
+    if ((steerOutputValue > 0) && (m_RightSteeringLimitSwitchValue == 1))
     {
       steerOutputValue = OFF;
     }
