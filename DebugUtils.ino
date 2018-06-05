@@ -46,7 +46,16 @@ void SoapBoxDerbyCar::ConfigureDebugPins()
 {
   pinMode(DEBUG_OUTPUT_1_LED_PIN, OUTPUT);
   pinMode(DEBUG_OUTPUT_2_LED_PIN, OUTPUT);
+  pinMode(DEBUG_OUTPUT_3_LED_PIN, OUTPUT);
+  pinMode(DEBUG_OUTPUT_4_LED_PIN, OUTPUT);
   pinMode(AUTONOMOUS_LED_PIN, OUTPUT);
+  
+  // Start with all LEDs off
+  digitalWrite(DEBUG_OUTPUT_1_LED_PIN, LOW);
+  digitalWrite(DEBUG_OUTPUT_2_LED_PIN, LOW);
+  digitalWrite(DEBUG_OUTPUT_3_LED_PIN, LOW);
+  digitalWrite(DEBUG_OUTPUT_4_LED_PIN, LOW);
+  digitalWrite(AUTONOMOUS_LED_PIN, LOW);
 }
 
 
