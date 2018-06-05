@@ -52,10 +52,12 @@ void SoapBoxDerbyCar::ConfigureSensors()
   
   pinMode(STEERING_ENCODER_PIN, INPUT);
 
-  pinMode(LEFT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
-  pinMode(RIGHT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(STEERING_LEFT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(STEERING_RIGHT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
   pinMode(BRAKE_RELEASE_LIMIT_SWITCH_PIN, INPUT_PULLUP);
   pinMode(BRAKE_APPLY_LIMIT_SWITCH_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN), SteeringLimitSwitchInterruptHandler, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN), BrakeLimitSwitchInterruptHandler, CHANGE);
   
   // Even though the Hall sensor pins will be used for interrupts, still
   // configure them as inputs will pull-up resistors.  The pins will be read in
@@ -71,14 +73,84 @@ void SoapBoxDerbyCar::ConfigureSensors()
 
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Method: SteeringLimitSwitchInterruptHandler
+///
+/// Details:  Interrupt handler for when a steering limit switch triggers.
+///           See https://playground.arduino.cc/Code/Interrupts and the AVR
+///           ATmega328P datasheet.
+////////////////////////////////////////////////////////////////////////////////
+void SoapBoxDerbyCar::SteeringLimitSwitchInterruptHandler()
+{
+  // The Atmel architecture guarantees that the Global
+  // Interrupt Enable bit (SREG.I) is cleared on interrupt
+  // entry.  A RETI instruction on ISR exit will re-enable
+  // this bit.  Executing interrupts() and noInterrupts()
+  // expand to SEI and CLI instructions, which could turn
+  // nested interrupts back on.  This implies the low level
+  // operating system code does not keep track of nested
+  // interrupt levels.  We'll assume that the context
+  // switching code properly handles all of this and not
+  // touch interrupt enabling/disabling ourselves via
+  // interrupts()/noInterrupts().
+  
+  volatile InterruptEdgeDirection interruptEdge = static_cast<InterruptEdgeDirection>(digitalRead(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN));
+  
+  // Debug visual assist (reversed logic since this is falling edge)
+  int ledState = (interruptEdge == RISING_EDGE) ? LOW : HIGH;
+  digitalWrite(DEBUG_OUTPUT_3_LED_PIN, ledState);
+
+  if (interruptEdge == FALLING_EDGE)
+  {
+    // A steering limit switch is tripped, turn the motor off
+    GetSingletonInstance()->DisableSteeringSpeedController();
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Method: BrakeLimitSwitchInterruptHandler
+///
+/// Details:  Interrupt handler for when a brake limit switch triggers.
+///           See https://playground.arduino.cc/Code/Interrupts and the AVR
+///           ATmega328P datasheet.
+////////////////////////////////////////////////////////////////////////////////
+void SoapBoxDerbyCar::BrakeLimitSwitchInterruptHandler()
+{
+  // The Atmel architecture guarantees that the Global
+  // Interrupt Enable bit (SREG.I) is cleared on interrupt
+  // entry.  A RETI instruction on ISR exit will re-enable
+  // this bit.  Executing interrupts() and noInterrupts()
+  // expand to SEI and CLI instructions, which could turn
+  // nested interrupts back on.  This implies the low level
+  // operating system code does not keep track of nested
+  // interrupt levels.  We'll assume that the context
+  // switching code properly handles all of this and not
+  // touch interrupt enabling/disabling ourselves via
+  // interrupts()/noInterrupts().
+  
+  volatile InterruptEdgeDirection interruptEdge = static_cast<InterruptEdgeDirection>(digitalRead(BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN));
+  
+  // Debug visual assist (reversed logic since this is falling edge)
+  int ledState = (interruptEdge == RISING_EDGE) ? LOW : HIGH;
+  digitalWrite(DEBUG_OUTPUT_4_LED_PIN, ledState);
+
+  if (interruptEdge == FALLING_EDGE)
+  {
+    // A brake limit switch is tripped, turn the motor off
+    GetSingletonInstance()->DisableBrakeSpeedController();
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 /// Method: ReadLimitSwitches
 ///
 /// Details:  Reads and stores all limit switch values.
 ////////////////////////////////////////////////////////////////////////////////
 void SoapBoxDerbyCar::ReadLimitSwitches()
 {
-  m_LeftLimitSwitchValue = digitalRead(LEFT_LIMIT_SWITCH_PIN);
-  m_RightLimitSwitchValue = digitalRead(RIGHT_LIMIT_SWITCH_PIN);
+  m_LeftLimitSwitchValue = digitalRead(STEERING_LEFT_LIMIT_SWITCH_PIN);
+  m_RightLimitSwitchValue = digitalRead(STEERING_RIGHT_LIMIT_SWITCH_PIN);
   m_BrakeReleaseLimitSwitchValue = digitalRead(BRAKE_RELEASE_LIMIT_SWITCH_PIN);
   m_BrakeApplyLimitSwitchValue = digitalRead(BRAKE_APPLY_LIMIT_SWITCH_PIN);
 }
