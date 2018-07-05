@@ -73,13 +73,13 @@ void SoapBoxDerbyCar::SetSteeringSpeedControllerValue(int value)
     
   // If the value is negative, steering is going
   // left.  Make sure the limit switch isn't tripped.
-  if ((value < 0) && (m_LeftLimitSwitchValue == 1))
+  if ((value < 0) && (m_LeftSteeringLimitSwitchValue == 1))
   {
     value = OFF;
   }
   // If the value is positive, steering is going
   // right.  Make sure the limit switch isn't tripped.
-  else if ((value > 0) && (m_RightLimitSwitchValue == 1))
+  else if ((value > 0) && (m_RightSteeringLimitSwitchValue == 1))
   {
     value = OFF;
   }
@@ -90,6 +90,7 @@ void SoapBoxDerbyCar::SetSteeringSpeedControllerValue(int value)
   // Update the speed controller and direction
   m_pSteeringSpeedController->SetSpeed(value);
   SetSteeringDirection(value);
+  m_CurrentSteeringValue = value;
 }
 
 
@@ -130,6 +131,7 @@ void SoapBoxDerbyCar::ApplyBrake(bool bWaitForDone)
   if (m_BrakeApplyLimitSwitchValue != 1)
   {
     m_pBrakeSpeedController->SetSpeed(APPLY_BRAKE_PERCENTAGE);
+    m_bApplyingBrake = true;
     
     // If requested to wait for the brake to be fully applied
     if (bWaitForDone)
@@ -142,11 +144,13 @@ void SoapBoxDerbyCar::ApplyBrake(bool bWaitForDone)
       
       // Motor back off
       m_pBrakeSpeedController->SetSpeed(OFF);
+      m_bApplyingBrake = false;
     }
   }
   else
   {
     m_pBrakeSpeedController->SetSpeed(OFF);
+    m_bApplyingBrake = false;
   }
   
   // Indicate the brake has been applied so calls to release it
@@ -178,6 +182,7 @@ void SoapBoxDerbyCar::ReleaseBrake(bool bWaitForDone)
   if (m_BrakeReleaseLimitSwitchValue != 1)
   {
     m_pBrakeSpeedController->SetSpeed(RELEASE_BRAKE_PERCENTAGE);
+    m_bReleasingBrake = true;
     
     // If requested to wait for the brake to be fully released
     if (bWaitForDone)
@@ -190,11 +195,13 @@ void SoapBoxDerbyCar::ReleaseBrake(bool bWaitForDone)
       
       // Motor back off
       m_pBrakeSpeedController->SetSpeed(OFF);
+      m_bReleasingBrake = false;
     }
   }
   else
   {
     m_pBrakeSpeedController->SetSpeed(OFF);
+    m_bReleasingBrake = false;
   }
 
   // Indicate the brake has not been applied so calls to apply it
@@ -258,13 +265,13 @@ void SoapBoxDerbyCar::UpdateSpeedControllers()
     ReadLimitSwitches();
     
     // Check the left limit switch
-    if ((steerOutputValue < 0) && (m_LeftLimitSwitchValue == 1))
+    if ((steerOutputValue < 0) && (m_LeftSteeringLimitSwitchValue == 1))
     {
       steerOutputValue = OFF;
     }
 
     // Check the right limit switch
-    if ((steerOutputValue > 0) && (m_RightLimitSwitchValue == 1))
+    if ((steerOutputValue > 0) && (m_RightSteeringLimitSwitchValue == 1))
     {
       steerOutputValue = OFF;
     }
