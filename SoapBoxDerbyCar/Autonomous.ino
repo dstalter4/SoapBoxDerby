@@ -68,8 +68,8 @@ void SoapBoxDerbyCar::AutonomousRoutine()
   ResetHallSensorCounts();
   
   // Execute only for as long as autonomous is allowed
-  unsigned long autonomousStartTimeMs = millis();
-  while ((millis() - autonomousStartTimeMs) < AUTO_MAX_LENGTH_MS)
+  unsigned long autonomousStartTimeMs = GetTimeStampMs();
+  while (CalcDeltaTimeMs(autonomousStartTimeMs) < AUTO_MAX_LENGTH_MS)
   {
     // First make sure the switch still says autonomous
     if (!IsAutonomousSwitchSet())

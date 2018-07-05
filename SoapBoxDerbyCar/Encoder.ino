@@ -139,11 +139,11 @@ void SoapBoxDerbyCar::CalibrateSteeringEncoder()
 
     // Get and measure the data
     uint32_t startSteeringEncoderValue = pulseIn(STEERING_ENCODER_PIN, HIGH, PULSE_IN_TIMEOUT_US);
-    uint32_t startTime = millis();
+    uint32_t startTime = GetTimeStampMs();
     SetSteeringSpeedControllerValue(100);
     delay(100);
     SetSteeringSpeedControllerValue(OFF);
-    uint32_t endTime = millis();
+    uint32_t endTime = GetTimeStampMs();
     uint32_t endSteeringEncoderValue = pulseIn(STEERING_ENCODER_PIN, HIGH, PULSE_IN_TIMEOUT_US);
     uint32_t deltaSteeringEncoderValue = 0U;
     

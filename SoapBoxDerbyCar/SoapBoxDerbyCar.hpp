@@ -178,6 +178,12 @@ private:
   
   void ReadSonarSensors();
 
+  // TIMER
+  inline unsigned long GetTimeStampMs() { return millis(); }
+  inline unsigned long GetTimeStampUs() { return micros(); }
+  inline unsigned long CalcDeltaTimeMs(unsigned long startTimeMs) { return (millis() - startTimeMs); }
+  inline unsigned long CalcDeltaTimeUs(unsigned long startTimeUs) { return (micros() - startTimeUs); }
+
   // SERIAL PORT
   void ConfigureSerialPorts();
   bool IsSerialTransmitSwitchSet();

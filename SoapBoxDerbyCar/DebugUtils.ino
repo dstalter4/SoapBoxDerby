@@ -98,11 +98,15 @@ void SoapBoxDerbyCar::DisplayValues()
 {
   static unsigned long currentTimeStamp = 0;
   static unsigned long oldTimeStamp = 0;
+  static int displayCount = 0;
 
   // Only display things every so often to not hog the CPU
-  currentTimeStamp = millis();
+  currentTimeStamp = GetTimeStampMs();
   if ((currentTimeStamp - oldTimeStamp) > DEBUG_PRINT_INTERVAL_MS)
   {
+    Serial.print("Debug print #");
+    Serial.print(displayCount++);
+    Serial.print(", ");
     Serial.print("Time: ");
     Serial.println(currentTimeStamp);
     
