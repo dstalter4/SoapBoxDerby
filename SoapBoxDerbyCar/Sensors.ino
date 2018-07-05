@@ -49,6 +49,7 @@ void SoapBoxDerbyCar::ConfigureSensors()
 {
   // Configure the sensor pin modes
   pinMode(AUTONOMOUS_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(SERIAL_TRANSMIT_SWITCH_PIN, INPUT_PULLUP);
   
   pinMode(STEERING_ENCODER_PIN, INPUT);
 

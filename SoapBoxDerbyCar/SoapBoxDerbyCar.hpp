@@ -177,6 +177,11 @@ private:
   void ReadPotentiometers();
   
   void ReadSonarSensors();
+
+  // SERIAL PORT
+  void ConfigureSerialPorts();
+  bool IsSerialTransmitSwitchSet();
+  void SendCarSerialData();
   
   // DEBUG ASSIST
   void ConfigureDebugPins();
@@ -201,6 +206,10 @@ private:
   // SPEED CONTROLLERS
   PwmSpeedController * m_pSteeringSpeedController;
   PwmSpeedController * m_pBrakeSpeedController;
+  SteeringDirection m_SteeringDirection;
+  int m_CurrentSteeringValue;
+  bool m_bReleasingBrake;
+  bool m_bApplyingBrake;
   bool m_bBrakeApplied;
   
   // ENCODERS
@@ -229,9 +238,11 @@ private:
   
   // SONAR SENSORS
   int m_SonarDistanceInches;
+
+  // SERIAL PORTS
+  HardwareSerial * m_pDataTransmitSerialPort;
   
   // MISC
-  SteeringDirection m_SteeringDirection;
   bool m_bCalibrationComplete;
   
   // SINGLETON INSTANCE
@@ -255,6 +266,7 @@ private:
   static const unsigned long  AUTO_MAX_LENGTH_MS                      =  300000;  // Five minutes
   
   // On the Mega, digital pins 2, 3, and 18-21 are interrupts.
+  // Serial ports (Rx/Tx) at pins 0/1 (default), 19/18 (Serial1), 17/16 (Serial2), 15/14 (Serial3)
   
   // DIGITAL PINS
   static const unsigned int   CH1_INPUT_PIN                           = 2;    // Derby car yaw control
@@ -276,6 +288,7 @@ private:
   static const unsigned int   RIGHT_HALL_SENSOR_PIN                   = 19;   // Must be a board interrupt pin
   static const unsigned int   STEERING_LIMIT_SWITCHES_INTERRUPT_PIN   = 20;   // Must be a board interrupt pin
   static const unsigned int   BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN      = 21;   // Must be a board interrupt pin
+  static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 24;
   static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 25;
   static const unsigned int   AUTONOMOUS_LED_PIN                      = 26;
   static const unsigned int   DEBUG_OUTPUT_1_LED_PIN                  = 27;

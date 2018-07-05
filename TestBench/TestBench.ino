@@ -137,8 +137,8 @@ void SerialTest()
   struct SerialData
   {
     int32_t steerMotorSpeed;
-    int32_t brakeApply;
     int32_t brakeRelease;
+    int32_t brakeApply;
     int32_t leftHallVal;
     int32_t rightHallVal;
     int32_t leftHallCount;
@@ -152,41 +152,51 @@ void SerialTest()
   };
   
   static SerialData serialData = {95,1,12345,340,-7,2,-18,3,0,4,0,-58,987};
-  byte * pData = reinterpret_cast<byte*>(&serialData);
+  //static SerialData serialData = {64,65,66,67,68,69,70,71,72,73,74,75,76};
+  //static SerialData serialData = {255,0,255,0,255,0,255,0,255,0,255,0,255};
+  //byte * pData = reinterpret_cast<byte*>(&serialData);
   
   static int x = 0;
   Serial.print("SerialTest: ");
   Serial.println(x++);
+
+  Serial3.println("SBDC");
+  Serial3.println(serialData.steerMotorSpeed);
+  Serial3.println(serialData.brakeRelease);
+  Serial3.println(serialData.brakeApply);
+  Serial3.println(serialData.leftHallVal);
+  Serial3.println(serialData.rightHallVal);
+  Serial3.println(serialData.leftHallCount);
+  Serial3.println(serialData.rightHallCount);
+  Serial3.println(serialData.leftLimit);
+  Serial3.println(serialData.rightLimit);
+  Serial3.println(serialData.brakeReleaseLimit);
+  Serial3.println(serialData.brakeApplyLimit);
+  Serial3.println(serialData.potentiometer);
+  Serial3.println(serialData.inAuto);
   
-  Serial3.write("SBDC\n");
+  /*
+  // This prints raw data with a byte pointer
   for (size_t x = 0; x < sizeof(SerialData); x++)
   {
+    Serial.print(*pData, HEX);
+    Serial.print(" ");
     Serial3.write(*pData++);
   }
-  Serial3.write('\n');
-  /*
-  Serial3.write(steerMotorSpeed);
-  Serial3.write(brakeApply);
-  Serial3.write(brakeRelease);
-  Serial3.write(potentiometer);
-  Serial3.write(leftHall);
-  Serial3.write(rightHall);
-  Serial3.write(leftLimit);
-  Serial3.write(rightLimit);
-  Serial3.write(upLimit);
-  Serial3.write(downLimit);
-  Serial3.write(inAuto);
-  Serial3.write("\n");
+  Serial3.println();
   */
+
+  // Display any data that Serial3 receives
   while (Serial3.available())
   {
     Serial.print(Serial3.read());
   }
   
   Serial.println();
-  delay(1000);
-  return;
-  
+  delay(3000);
+
+  /*
+  // Old test
   if (Serial)
   {
     digitalWrite(DEBUG_OUTPUT_1_LED_PIN, HIGH);
@@ -195,6 +205,7 @@ void SerialTest()
   {
     digitalWrite(DEBUG_OUTPUT_2_LED_PIN, HIGH);
   }
+  */
 }
 
 void ControllerInputTest()

@@ -46,12 +46,7 @@ SoapBoxDerbyCar * SoapBoxDerbyCar::m_pSoapBoxDerbyCar = nullptr;
 ///           start up. 
 ////////////////////////////////////////////////////////////////////////////////
 void setup()
-{
-  // Enable the UART
-  const long int SERIAL_PORT_BAUD_RATE = 115200;
-  Serial.begin(SERIAL_PORT_BAUD_RATE);
-  Serial.println("Initializing...");
-  
+{  
   // Create the soap box derby car singleton
   SoapBoxDerbyCar::CreateSingletonInstance();
 }
@@ -81,6 +76,10 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   m_bMasterEnable(false),
   m_pSteeringSpeedController(new PwmSpeedController(STEERING_SPEED_CONTROLLER_PIN)),
   m_pBrakeSpeedController(new PwmSpeedController(BRAKE_SPEED_CONTROLLER_PIN)),
+  m_SteeringDirection(NONE),
+  m_CurrentSteeringValue(0),
+  m_bReleasingBrake(false),
+  m_bApplyingBrake(false),
   m_bBrakeApplied(false),
   m_SteeringEncoderValue(0),
   m_SteeringEncoderMultiplier(0),
@@ -98,9 +97,12 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   m_FrontAxlePotCenterValue(0),
   m_LastGoodPotValue(0),
   m_SonarDistanceInches(0),
-  m_SteeringDirection(NONE),
+  m_pDataTransmitSerialPort(&Serial3),
   m_bCalibrationComplete(false)
 {
+  // Configure serial ports (including default print console)
+  ConfigureSerialPorts();
+  
   // Configure pin modes
   ConfigureController();
   ConfigureSensors();
@@ -196,6 +198,13 @@ void SoapBoxDerbyCar::Run()
     else
     {
       ApplyBrake();
+    }
+  
+    // Check if serial data should be sent and transmit it if appropriate
+    // @todo: Enable once switch is ready.
+    if (false)//IsSerialTransmitSwitchSet())
+    {
+      SendCarSerialData();
     }
   
     // Display values to the serial console, if enabled
