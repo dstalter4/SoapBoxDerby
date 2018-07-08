@@ -279,6 +279,7 @@ void SoapBoxDerbyCar::UpdateSpeedControllers()
     // Update talon
     m_pSteeringSpeedController->SetSpeed(steerOutputValue);
     SetSteeringDirection(steerOutputValue);
+    m_CurrentSteeringValue = steerOutputValue;
   }
 
   // Update the brake speed controller based on input
