@@ -48,8 +48,8 @@
 void SoapBoxDerbyCar::CalibrateSteeringPotentiometer()
 {
   static int calibrationAttempt = 0;
-  Serial.println("Centering steering by pot...");
-  Serial.print("Calibration attempt #");
+  Serial.println(F("Centering steering by pot..."));
+  Serial.print(F("Calibration attempt #"));
   Serial.println(++calibrationAttempt);
 
   // @todo: Debug why this sometimes gets stuck.
@@ -124,18 +124,18 @@ void SoapBoxDerbyCar::CalibrateSteeringPotentiometer()
   m_LastGoodPotValue = m_FrontAxlePotCenterValue;
   m_bCalibrationComplete = true;
   
-  Serial.print("Left calibration pot value: ");
+  Serial.print(F("Left calibration pot value: "));
   Serial.println(m_FrontAxlePotMaxLeftValue);
-  Serial.print("Right calibration pot value: ");
+  Serial.print(F("Right calibration pot value: "));
   Serial.println(m_FrontAxlePotMaxRightValue);
-  Serial.print("Center calibration pot value: ");
+  Serial.print(F("Center calibration pot value: "));
   Serial.println(m_FrontAxlePotCenterValue);
-  Serial.print("Final calibration position: ");
+  Serial.print(F("Final calibration position: "));
   ReadPotentiometers();
   Serial.println(m_FrontAxlePotentiometerValue);
-  Serial.print("Pot diff: ");
+  Serial.print(F("Pot diff: "));
   Serial.println(m_FrontAxlePotMaxLeftValue  - m_FrontAxlePotMaxRightValue);
-  Serial.println("Centering calibration complete...");
+  Serial.println(F("Centering calibration complete..."));
   Serial.println();
 }
 
@@ -200,6 +200,7 @@ void SoapBoxDerbyCar::CenterSteeringByPotentiometer()
 ///  4       |  9.5229527"
 ///  6       |  6.3486351"
 ///  8       |  4.7614763"
+/// 12       |  3.1743178"
 ///
 /// Potentiometer has input range of 0 -> 1023 and 250 degrees.
 /// This gives a default ratio of .244140 degrees per click.
@@ -258,52 +259,49 @@ void SoapBoxDerbyCar::ReadPotentiometers()
   
   // The potentiometer has a 250 degree range of motion, and 1024 input value
   // GEAR_RATIO comes from the teeth ratio on the gears
-  const float POT_INPUT_RATIO       = 250.0 / 1024.0;
-  const float GEAR_RATIO            = 3.0/7.0;
-  const float DEGREES_TO_RADIANS    = 2.0 * M_PI / 360.0;
-  const int   WHEEL_AXLE_LEGNTH_IN  = 32;
-  const int   WHEEL_BASE_LENGTH_IN  = 61;
+  const double POT_INPUT_RATIO      = 250.0 / 1024.0;
+  const double GEAR_RATIO           = 3.0/7.0;
   
   // Convert the pot diff into the pot's angle of movement
   // After, convert that to axle angle of movement based on the gear ratio
-  float potAngleDiff = potDiff * POT_INPUT_RATIO;
-  float axleAngleDiff = potAngleDiff * GEAR_RATIO;
+  double potAngleDiff = potDiff * POT_INPUT_RATIO;
+  double axleAngleDiff = potAngleDiff * GEAR_RATIO;
   
   // From comments above:
   // r = w / tan(theta) (front wheel radius)
   // R = w / sin(theta) (back wheel radius)
   // Outer wheel radius is also the inner radius + axle length
-  float innerWheelRadius = abs(static_cast<float>(WHEEL_BASE_LENGTH_IN) / tan(axleAngleDiff * DEGREES_TO_RADIANS));
-  float outerWheelRadius = innerWheelRadius + static_cast<float>(WHEEL_AXLE_LEGNTH_IN);
+  double innerWheelRadius = abs(WHEEL_BASE_LENGTH_INCHES / tan(axleAngleDiff * DEGREES_TO_RADIANS));
+  double outerWheelRadius = innerWheelRadius + WHEEL_AXLE_LEGNTH_INCHES;
   
   // Arclength equation is S = r * theta
-  float innerArcLength = innerWheelRadius * axleAngleDiff;
-  float outerArcLength = outerWheelRadius * axleAngleDiff;
+  double innerArcLength = innerWheelRadius * axleAngleDiff;
+  double outerArcLength = outerWheelRadius * axleAngleDiff;
 
-  float arcLengthRatio = outerArcLength / innerArcLength;
+  double arcLengthRatio = outerArcLength / innerArcLength;
   
   // Silence warnings (for now)
   (void)axleDirection;
   (void)arcLengthRatio;
 
   /*
-  Serial.print("Raw pot value: ");
+  Serial.print(F("Raw pot value: "));
   Serial.println(frontAxlePotentiometerValue);
-  Serial.print("Pot diff from center: ");
+  Serial.print(F("Pot diff from center: "));
   Serial.println(potDiff);
-  Serial.print("Pot angle diff: ");
+  Serial.print(F("Pot angle diff: "));
   Serial.println(potAngleDiff);
-  Serial.print("Axle angle diff: ");
+  Serial.print(F("Axle angle diff: "));
   Serial.println(axleAngleDiff);
-  Serial.print("Inner wheel radius: ");
+  Serial.print(F("Inner wheel radius: "));
   Serial.println(innerWheelRadius);
-  Serial.print("Outer wheel radius: ");
+  Serial.print(F("Outer wheel radius: "));
   Serial.println(outerWheelRadius);
-  Serial.print("Inner arc length: ");
+  Serial.print(F("Inner arc length: "));
   Serial.println(innerArcLength);
-  Serial.print("Outer arc length: ");
+  Serial.print(F("Outer arc length: "));
   Serial.println(outerArcLength);
-  Serial.print("Arc length ratio: ");
+  Serial.print(F("Arc length ratio: "));
   Serial.println(arcLengthRatio);
   Serial.println();
   Serial.println();
