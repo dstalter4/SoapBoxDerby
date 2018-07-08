@@ -48,14 +48,18 @@ void SoapBoxDerbyCar::ConfigureDebugPins()
   pinMode(DEBUG_OUTPUT_2_LED_PIN, OUTPUT);
   pinMode(DEBUG_OUTPUT_3_LED_PIN, OUTPUT);
   pinMode(DEBUG_OUTPUT_4_LED_PIN, OUTPUT);
-  pinMode(AUTONOMOUS_LED_PIN, OUTPUT);
+  pinMode(AUTONOMOUS_READY_LED_PIN, OUTPUT);
+  pinMode(AUTONOMOUS_EXECUTING_LED_PIN, OUTPUT);
+  pinMode(EEPROM_RW_LED_PIN, OUTPUT);
   
   // Start with all LEDs off
   digitalWrite(DEBUG_OUTPUT_1_LED_PIN, LOW);
   digitalWrite(DEBUG_OUTPUT_2_LED_PIN, LOW);
   digitalWrite(DEBUG_OUTPUT_3_LED_PIN, LOW);
   digitalWrite(DEBUG_OUTPUT_4_LED_PIN, LOW);
-  digitalWrite(AUTONOMOUS_LED_PIN, LOW);
+  digitalWrite(AUTONOMOUS_READY_LED_PIN, LOW);
+  digitalWrite(AUTONOMOUS_EXECUTING_LED_PIN, LOW);
+  digitalWrite(EEPROM_RW_LED_PIN, LOW);
 }
 
 
@@ -94,7 +98,7 @@ void SoapBoxDerbyCar::ProcessAssert()
 /// Details:  Displays debug information about the inputs, sensors and other
 ///           state control variables.
 ////////////////////////////////////////////////////////////////////////////////
-void SoapBoxDerbyCar::DisplayValues()
+void SoapBoxDerbyCar::DisplayValues(bool bShowImmediately)
 {
   static unsigned long currentTimeStamp = 0;
   static unsigned long oldTimeStamp = 0;
@@ -102,53 +106,129 @@ void SoapBoxDerbyCar::DisplayValues()
 
   // Only display things every so often to not hog the CPU
   currentTimeStamp = GetTimeStampMs();
-  if ((currentTimeStamp - oldTimeStamp) > DEBUG_PRINT_INTERVAL_MS)
+  if (bShowImmediately || ((currentTimeStamp - oldTimeStamp) > DEBUG_PRINT_INTERVAL_MS))
   {
-    Serial.print("Debug print #");
+    Serial.print(F("Debug print #"));
     Serial.print(displayCount++);
-    Serial.print(", ");
-    Serial.print("Time: ");
+    Serial.print(F(", "));
+    Serial.print(F("Time: "));
     Serial.println(currentTimeStamp);
     
-    Serial.print("Steering input: ");
+    Serial.print(F("Steering input: "));
     Serial.println(m_ControllerChannelInputs[YAW_INPUT_CHANNEL]);
-    Serial.print("Brake input: ");
+    Serial.print(F("Brake input: "));
     Serial.println(m_ControllerChannelInputs[BRAKE_INPUT_CHANNEL]);
-    Serial.print("Emergency stop input: ");
+    Serial.print(F("Emergency stop input: "));
     Serial.println(m_ControllerChannelInputs[MASTER_ENABLE_INPUT_CHANNEL]);
-    Serial.print("Steering encoder: ");
+    Serial.print(F("Steering encoder: "));
     Serial.println(m_SteeringEncoderValue);
-    Serial.print("Steering encoder multiplier: ");
+    Serial.print(F("Steering encoder multiplier: "));
     Serial.println(m_SteeringEncoderMultiplier);
     
-    Serial.print("Left hall sensor: ");
+    Serial.print(F("Left hall sensor: "));
     Serial.println(m_LeftHallSensorValue);
-    Serial.print("Right hall sensor: ");
+    Serial.print(F("Right hall sensor: "));
     Serial.println(m_RightHallSensorValue);
-    Serial.print("Left hall count: ");
+    Serial.print(F("Left hall count: "));
     Serial.println(m_LeftHallCount);
-    Serial.print("Right hall count: ");
+    Serial.print(F("Right hall count: "));
     Serial.println(m_RightHallCount);
+    Serial.print(F("Left wheel distance (ft.): "));
+    Serial.println(m_LeftWheelDistanceInches / INCHES_PER_FOOT);
+    Serial.print(F("Right wheel distance (ft.): "));
+    Serial.println(m_RightWheelDistanceInches / INCHES_PER_FOOT);
     
-    Serial.print("Left limit switch: ");
+    Serial.print(F("Left limit switch: "));
     Serial.println(m_LeftSteeringLimitSwitchValue);
-    Serial.print("Right limit switch: ");
+    Serial.print(F("Right limit switch: "));
     Serial.println(m_RightSteeringLimitSwitchValue);
-    Serial.print("Brake release limit switch: ");
+    Serial.print(F("Brake release limit switch: "));
     Serial.println(m_BrakeReleaseLimitSwitchValue);
-    Serial.print("Brake apply limit switch: ");
+    Serial.print(F("Brake apply limit switch: "));
     Serial.println(m_BrakeApplyLimitSwitchValue);
     
-    Serial.print("Front axle potentiometer: ");
+    Serial.print(F("Front axle potentiometer: "));
     Serial.println(m_FrontAxlePotentiometerValue);
     
-    Serial.print("Sonar sensor: ");
+    Serial.print(F("Sonar sensor: "));
     Serial.println(m_SonarDistanceInches);
+
+    Serial.print(F("Data log index: "));
+    Serial.println(m_NonVolatileCarData.m_DataLogIndex);
+    Serial.print(F("Data log overflowed: "));
+    Serial.println(m_NonVolatileCarData.m_bDataLogOverflowed ? "true" : "false");
   
     Serial.println();
     Serial.println();
 
     oldTimeStamp = currentTimeStamp;
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Method: ReadSerialInput
+///
+/// Details:  Gets any input from the serial console and takes action if a
+///           valid command is received.
+////////////////////////////////////////////////////////////////////////////////
+void SoapBoxDerbyCar::ReadSerialInput()
+{
+  if (Serial.available())
+  {
+    switch (Serial.read())
+    {
+      case COMMAND_DISPLAY_DEBUG_PRINTS:
+      {
+        DisplayValues(true);
+        break;
+      }
+      case COMMAND_DISPLAY_DATA_LOG:
+      {
+        DisplayDataLog();
+        break;
+      }
+      case COMMAND_CLEAR_DATA_LOG:
+      {
+        ClearDataLog(RAM_LOG);
+        break;
+      }
+      case COMMAND_SEND_SERIAL_DATA:
+      {
+        SendCarSerialData();
+        break;
+      }
+      case COMMAND_DISPLAY_EEPROM:
+      {
+        DisplayEeprom();
+        break;
+      }
+      case COMMAND_ERASE_EEPROM:
+      {
+        EraseEeprom();
+        break;
+      }
+      case COMMAND_RESTORE_FROM_EEPROM:
+      {
+        RestoreLogFromEeprom();
+        break;
+      }
+      case COMMAND_WRITE_TO_EEPROM:
+      {
+        WriteLogToEeprom();
+        break;
+      }
+      case COMMAND_NEW_LINE:
+      case COMMAND_CARRIAGE_RETURN:
+      {
+        break;
+      }
+      default:
+      {
+        Serial.println(F("Unrecognized input command."));
+        break;
+      }
+    }
   }
 }
 
