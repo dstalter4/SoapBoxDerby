@@ -57,24 +57,42 @@ bool SoapBoxDerbyCar::IsAutonomousSwitchSet()
 ////////////////////////////////////////////////////////////////////////////////
 void SoapBoxDerbyCar::AutonomousRoutine()
 {
-  Serial.println("Autonomous executing...");
+  Serial.println(F("Autonomous: Ready, waiting for launch."));
+
+  // Give a visual indication that the car is ready to begin
+  // autonomous (i.e. the wheels start moving).
+  digitalWrite(AUTONOMOUS_READY_LED_PIN, HIGH);
+  
+  // Reset the hall sensor encoders for this autonomous run
+  ResetHallSensorCounts();
+
+  // Autonomous truly starts when the wheels start moving
+  while ((m_LeftHallCount < AUTO_HALL_SENSOR_LAUNCH_COUNT) && (m_RightHallCount < AUTO_HALL_SENSOR_LAUNCH_COUNT))
+  {
+    // Watch for autonomous to be cancelled
+    if (!IsAutonomousSwitchSet())
+    {
+      Serial.println(F("Autonomous: Cancelled in ready/launch state."));
+      ExitAutonomous();
+      return;
+    }
+  }
+
+  Serial.println(F("Autonomous: Executing..."));
 
   // Indicate autonomous is executing, in case any logic
   // elsewhere with the sensors/motor controllers cares.
   m_bIsAutonomousExecuting = true;
-  digitalWrite(AUTONOMOUS_LED_PIN, HIGH);
-  
-  // Reset the hall sensor encoders for this autonomous run
-  ResetHallSensorCounts();
+  digitalWrite(AUTONOMOUS_EXECUTING_LED_PIN, HIGH);
   
   // Execute only for as long as autonomous is allowed
-  unsigned long autonomousStartTimeMs = millis();
-  while ((millis() - autonomousStartTimeMs) < AUTO_MAX_LENGTH_MS)
+  unsigned long autonomousStartTimeMs = GetTimeStampMs();
+  while (CalcDeltaTimeMs(autonomousStartTimeMs) < AUTO_MAX_LENGTH_MS)
   {
     // First make sure the switch still says autonomous
     if (!IsAutonomousSwitchSet())
     {
-      Serial.println("Autonomous cancelled while running...");
+      Serial.println(F("Autonomous: Cancelled while running."));
       break;
     }
     
@@ -107,21 +125,40 @@ void SoapBoxDerbyCar::AutonomousRoutine()
     {
       CenterSteeringByPotentiometer();
     }
+
+    LogData(CalcDeltaTimeMs(autonomousStartTimeMs));
   } // End main autonomous while loop
 
-  // Autonomous time expired, stop the motors
+  // Perform common autonomous completion activities
+  ExitAutonomous();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Method: ExitAutonomous
+///
+/// Details:  Performs common path autonomous exit activities.  This method
+///           should be called at whatever code paths will return to manual
+///           control mode.
+////////////////////////////////////////////////////////////////////////////////
+void SoapBoxDerbyCar::ExitAutonomous()
+{
+  Serial.println(F("Autonomous: Exiting..."));
+  
+  // Stop the motors
   ApplyBrake();
   SetSteeringSpeedControllerValue(OFF);
   
-  // Reset the Hall sensor conters in case mode
-  // changes to remote control
+  // Reset the Hall sensor counters
   ResetHallSensorCounts();
   
   // Autonomous is no longer executing
   m_bIsAutonomousExecuting = false;
-  digitalWrite(AUTONOMOUS_LED_PIN, LOW);
-  
-  Serial.println("Autonomous done executing...");
+  digitalWrite(AUTONOMOUS_READY_LED_PIN, LOW);
+  digitalWrite(AUTONOMOUS_EXECUTING_LED_PIN, LOW);
+
+  // Write the logged data values to EEPROM
+  //WriteLogToEeprom(true);
   
   // Let autonomous only execute once until the
   // switch is flipped back to manual control
@@ -129,6 +166,6 @@ void SoapBoxDerbyCar::AutonomousRoutine()
   {
   }
 
-  Serial.println("Entering manual control from auto...");
+  Serial.println(F("Autonomous: Entering manual control from auto."));
 }
 

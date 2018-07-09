@@ -33,7 +33,11 @@
 #include "SoapBoxDerbyCar.hpp"        // for constants and function declarations
 
 // STATIC DATA
-SoapBoxDerbyCar * SoapBoxDerbyCar::m_pSoapBoxDerbyCar = nullptr;
+SoapBoxDerbyCar *                   SoapBoxDerbyCar::m_pSoapBoxDerbyCar               = nullptr;
+SoapBoxDerbyCar::NonVolatileCarData SoapBoxDerbyCar::m_NonVolatileCarData             = {0, 0, false, false, 0};
+SoapBoxDerbyCar::DataLogEntry       SoapBoxDerbyCar::m_DataLog[MAX_DATA_LOG_ENTRIES]  = {};
+const String                        SoapBoxDerbyCar::SERIAL_PORT_DATA_REQUEST_STRING  = "pi";
+const String                        SoapBoxDerbyCar::NON_VOLATILE_CAR_DATA_HEADER     = "SBDC";
 
 // GLOBALS
 // (none)
@@ -87,6 +91,8 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   m_RightHallSensorValue(0),
   m_LeftHallCount(0),
   m_RightHallCount(0),
+  m_LeftWheelDistanceInches(0.0),
+  m_RightWheelDistanceInches(0.0),
   m_LeftSteeringLimitSwitchValue(0),
   m_RightSteeringLimitSwitchValue(0),
   m_BrakeReleaseLimitSwitchValue(0),
@@ -100,6 +106,16 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   m_pDataTransmitSerialPort(&Serial3),
   m_bCalibrationComplete(false)
 {
+  // Initialize the RAM copy of the non-volatile car data
+  NonVolatileCarData eepromCarData;
+  GetEepromCarData(eepromCarData);
+
+  memcpy(&m_NonVolatileCarData.m_Header, &NON_VOLATILE_CAR_DATA_HEADER, sizeof(m_NonVolatileCarData.m_Header));
+  m_NonVolatileCarData.m_Incarnation = eepromCarData.m_Incarnation + 1;
+  
+  // Clear out the data log
+  ClearDataLog(RAM_LOG);
+  
   // Configure serial ports (including default print console)
   ConfigureSerialPorts();
   
@@ -126,7 +142,7 @@ void SoapBoxDerbyCar::Run()
 {
   if (IsAutonomousSwitchSet())
   {
-    Serial.println("Auto waiting...");
+    Serial.println(F("Auto waiting..."));
 
     // In case we came from manual control, disable motors
     ApplyBrake(true);
@@ -156,16 +172,16 @@ void SoapBoxDerbyCar::Run()
     // sure autonomous is still intended.
     if (IsAutonomousSwitchSet())
     {
-      Serial.println("Entering autonomous...");
+      Serial.println(F("Entering autonomous..."));
       
       // Input to start was given
       AutonomousRoutine();
 
-      Serial.println("Exiting autonomous...");
+      Serial.println(F("Exiting autonomous..."));
     }
     else
     {
-      Serial.println("Auto cancelled...");
+      Serial.println(F("Auto cancelled..."));
     }
   }
   else
@@ -199,10 +215,12 @@ void SoapBoxDerbyCar::Run()
     {
       ApplyBrake();
     }
+
+    // Log a data entry
+    LogData();
   
     // Check if serial data should be sent and transmit it if appropriate
-    // @todo: Enable once switch is ready.
-    if (false)//IsSerialTransmitSwitchSet())
+    if (IsCarDataRequested())// || IsSerialTransmitSwitchSet())
     {
       SendCarSerialData();
     }
@@ -211,6 +229,12 @@ void SoapBoxDerbyCar::Run()
     if (DEBUG_PRINTS)
     {
       DisplayValues();
+    }
+
+    // Get debug commands from the serial console, if enabled
+    if (DEBUG_COMMANDS)
+    {
+      ReadSerialInput();
     }
   }
 }

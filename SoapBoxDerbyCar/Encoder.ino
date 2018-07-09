@@ -47,7 +47,7 @@ void SoapBoxDerbyCar::CenterSteeringByEncoder()
 {
   // @todo: This should be part of calibrate, not center.
   
-  Serial.println("Centering steering by encoder...");
+  Serial.println(F("Centering steering by encoder..."));
   
   // Calibrate max left
   SetSteeringSpeedControllerValue(AUTO_CENTERING_CALIBRATION_LEFT_SPEED);
@@ -87,21 +87,21 @@ void SoapBoxDerbyCar::CenterSteeringByEncoder()
   // @todo: If the starting position is very
   // far right, the center value ends up
   // being negative and we fail to calibrate.
-  Serial.print("Current value: ");
+  Serial.print(F("Current value: "));
   Serial.println(m_SteeringEncoderValue);
-  Serial.print("Multiplier: ");
+  Serial.print(F("Multiplier: "));
   Serial.println(m_SteeringEncoderMultiplier);
-  Serial.print("Left encoder calibration: ");
+  Serial.print(F("Left encoder calibration: "));
   Serial.println(leftEncoderCalibrationValue);
-  Serial.print("Right encoder calibration: ");
+  Serial.print(F("Right encoder calibration: "));
   Serial.println(rightEncoderCalibrationValue);
-  Serial.print("Left encoder range: ");
+  Serial.print(F("Left encoder range: "));
   Serial.println(leftEncoderRange);
-  Serial.print("Right encoder range: ");
+  Serial.print(F("Right encoder range: "));
   Serial.println(rightEncoderRange);
-  Serial.print("Total range: ");
+  Serial.print(F("Total range: "));
   Serial.println(totalEncoderRange);
-  Serial.print("Center encoder position: ");
+  Serial.print(F("Center encoder position: "));
   Serial.println(centerEncoderPosition);
   Serial.println();
 
@@ -112,11 +112,11 @@ void SoapBoxDerbyCar::CenterSteeringByEncoder()
   // back to the center.
   if (m_LeftSteeringLimitSwitchValue == 1 || m_RightSteeringLimitSwitchValue == 1)
   {
-    Serial.println("CALIBRATION FAILED!!!");
+    Serial.println(F("CALIBRATION FAILED!!!"));
   }
   else
   {
-    Serial.println("CALIBRATION SUCCESSFUL");
+    Serial.println(F("CALIBRATION SUCCESSFUL"));
   }
 }
 
@@ -139,17 +139,17 @@ void SoapBoxDerbyCar::CalibrateSteeringEncoder()
 
     // Get and measure the data
     uint32_t startSteeringEncoderValue = pulseIn(STEERING_ENCODER_PIN, HIGH, PULSE_IN_TIMEOUT_US);
-    uint32_t startTime = millis();
+    uint32_t startTime = GetTimeStampMs();
     SetSteeringSpeedControllerValue(100);
     delay(100);
     SetSteeringSpeedControllerValue(OFF);
-    uint32_t endTime = millis();
+    uint32_t endTime = GetTimeStampMs();
     uint32_t endSteeringEncoderValue = pulseIn(STEERING_ENCODER_PIN, HIGH, PULSE_IN_TIMEOUT_US);
     uint32_t deltaSteeringEncoderValue = 0U;
     
     if (bFirst)
     {
-      Serial.println("First discarded.");
+      Serial.println(F("First discarded."));
       Serial.println();
       bFirst = false;
       delay(5000);
@@ -186,24 +186,24 @@ void SoapBoxDerbyCar::CalibrateSteeringEncoder()
       static uint32_t count = 0U;
       count++;
       
-      Serial.print("Encoder Start: ");
+      Serial.print(F("Encoder Start: "));
       Serial.println(startSteeringEncoderValue);
-      Serial.print("Encoder End: ");
+      Serial.print(F("Encoder End: "));
       Serial.println(endSteeringEncoderValue);
-      Serial.print("Encoder Delta: ");
+      Serial.print(F("Encoder Delta: "));
       Serial.println(deltaSteeringEncoderValue);
-      Serial.print("Encoder Low: ");
+      Serial.print(F("Encoder Low: "));
       Serial.println(deltaSteeringEncoderLow);
-      Serial.print("Encoder High: ");
+      Serial.print(F("Encoder High: "));
       Serial.println(deltaSteeringEncoderHigh);
-      Serial.print("Encoder Average: ");
+      Serial.print(F("Encoder Average: "));
       Serial.println(static_cast<int>(totalSteeringEncoder / count));
       
-      //Serial.print("Start Time: ");
+      //Serial.print(F("Start Time: "));
       //Serial.println(startTime);
-      //Serial.print("End Time: ");
+      //Serial.print(F("End Time: "));
       //Serial.println(endTime);
-      Serial.print("Time Delta: ");
+      Serial.print(F("Time Delta: "));
       Serial.println(endTime - startTime);
       
       Serial.println();

@@ -7,7 +7,21 @@
 ///           be used in the other .ino files in this project.  It is also used
 ///           as the primary control of behavior via the constants.
 ///
-/// Note:     When wiring things with a resitor, the resistor goes from voltage
+/// Note:     This program is intended to be used on a Mega2560.  The Mega has
+///           a clock speed of 16Mhz (62.5ns per clock cycle).  The serial
+///           ports are configured at 115200 (8.6805us).  This is roughly 87us
+///           per byte transmitted out a serial port.  Arduino serial port
+///           buffer size is 64 bytes.
+///
+///           There are three forms of memory on the Mega:
+///             - Flash   (256kB)
+///             - SRAM    (8kB)
+///             - EEPROM  (4kB)
+///           Flash is where the .text section ends up as well as any strings
+///           that use the F() macro.  SRAM is where the .bss/.data sections
+///           end up.  EEPROM is where non-volatile user data can be stored.
+///
+///           When wiring things with a resitor, the resistor goes from voltage
 ///           to signal.  Use 1k-5k ohm resistors.
 ///
 /// Edit History:
@@ -42,20 +56,25 @@
 #include "PwmSpeedController.hpp"     // for speed controller declarations
 
 // MACROS
-#define ASSERT(condition)         \
-  do                              \
-  {                               \
-    if (!(condition))             \
-    {                             \
-      Serial.println();           \
-      Serial.println("ASSERT!");  \
-      Serial.print("File: ");     \
-      Serial.println(__FILE__);   \
-      Serial.print("Line: ");     \
-      Serial.println(__LINE__);   \
-      ProcessAssert();            \
-    }                             \
+#define ASSERT(condition)           \
+  do                                \
+  {                                 \
+    if (!(condition))               \
+    {                               \
+      Serial.println();             \
+      Serial.println(F("ASSERT!")); \
+      Serial.print(F("File: "));    \
+      Serial.println(__FILE__);     \
+      Serial.print(F("Line: "));    \
+      Serial.println(__LINE__);     \
+      ProcessAssert();              \
+    }                               \
   } while (false)
+
+#define UNUSED __attribute__((unused))
+#define SECTION(x) __attribute__((section (x)))
+#define STRINGIFY(s) #s
+#define IGNORE_FLAGS(s) _Pragma(STRINGIFY(GCC diagnostic ignored s))
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -120,6 +139,37 @@ private:
     FALLING_EDGE  = LOW,
     RISING_EDGE   = HIGH
   };
+
+  // Locations for where the data log can be kept
+  enum LogLocation
+  {
+    RAM_LOG,
+    EEPROM_LOG
+  };
+  
+  
+  //////////////////////////////////////////////////////////////////////////////
+  /// STRUCTS
+  //////////////////////////////////////////////////////////////////////////////
+  
+  // Data log entry structure
+  struct DataLogEntry
+  {
+    uint32_t m_TimeStampMs;
+    int32_t  m_LeftWheelDistanceInches;
+    int32_t  m_RightWheelDistanceInches;
+    int32_t  m_FrontAxlePotentiometer;
+  };
+
+  // Non-volatile data structure
+  struct NonVolatileCarData
+  {
+    uint32_t m_Header;
+    int      m_Incarnation;
+    bool     m_bSavedByAuto;
+    bool     m_bDataLogOverflowed;
+    int      m_DataLogIndex;
+  };
   
   
   //////////////////////////////////////////////////////////////////////////////
@@ -136,6 +186,7 @@ private:
   
   // AUTONOMOUS
   void AutonomousRoutine();
+  void ExitAutonomous();
   bool IsAutonomousSwitchSet();
   void CenterSteeringByEncoder();
   void CenterSteeringByPotentiometer();
@@ -162,8 +213,8 @@ private:
   
   static void LeftHallSensorInterruptHandler();
   static void RightHallSensorInterruptHandler();
-  inline void IncrementLeftHallSensorCount() { m_LeftHallCount++; }
-  inline void IncrementRightHallSensorCount() { m_RightHallCount++; }
+  inline void IncrementLeftHallSensorCount() { m_LeftWheelDistanceInches = ++m_LeftHallCount * WHEEL_LENGTH_PER_MAGNET_INCHES; }
+  inline void IncrementRightHallSensorCount() { m_RightWheelDistanceInches = ++m_RightHallCount * WHEEL_LENGTH_PER_MAGNET_INCHES; }
   void ResetHallSensorCounts();
   void ReadHallSensors();
 
@@ -178,14 +229,39 @@ private:
   
   void ReadSonarSensors();
 
+  // TIMER
+  static inline unsigned long GetTimeStampMs() { return millis(); }
+  static inline unsigned long GetTimeStampUs() { return micros(); }
+  static inline unsigned long CalcDeltaTimeMs(unsigned long startTimeMs) { return (millis() - startTimeMs); }
+  static inline unsigned long CalcDeltaTimeUs(unsigned long startTimeUs) { return (micros() - startTimeUs); }
+
+  // DATA LOGGING
+  template <typename TypeToRead>
+  void GenericReadFromEeprom(TypeToRead & rDataToRead, unsigned offset);
+  template <typename TypeToWrite>
+  void GenericWriteToEeprom(const TypeToWrite & rDataToWrite, unsigned offset);
+  template <typename TypeToErase>
+  void GenericEraseEeprom(const TypeToErase & rDataToErase, unsigned offset);
+  
+  void LogData(unsigned long entryTimeStampMs = GetTimeStampMs());
+  void ClearDataLog(LogLocation logLocation);
+  void DisplayDataLog();
+  void DisplayEeprom();
+  void RestoreLogFromEeprom();
+  void WriteLogToEeprom(bool bFromAuto = false);
+  void EraseEeprom();
+  void GetEepromCarData(NonVolatileCarData & rCarData);
+
   // SERIAL PORT
   void ConfigureSerialPorts();
   bool IsSerialTransmitSwitchSet();
+  bool IsCarDataRequested();
   void SendCarSerialData();
   
   // DEBUG ASSIST
   void ConfigureDebugPins();
-  void DisplayValues();
+  void DisplayValues(bool bShowImmediately = false);
+  void ReadSerialInput();
   static void ProcessAssert();
   
   
@@ -222,6 +298,8 @@ private:
   int m_RightHallSensorValue;
   volatile unsigned int m_LeftHallCount;
   volatile unsigned int m_RightHallCount;
+  double m_LeftWheelDistanceInches;
+  double m_RightWheelDistanceInches;
   
   // LIMIT SWITCHES
   int m_LeftSteeringLimitSwitchValue;
@@ -239,7 +317,35 @@ private:
   // SONAR SENSORS
   int m_SonarDistanceInches;
 
+  // DATA LOGGING
+  // 2 entries/sec for two minutes max
+  // This is limited by the amount of SRAM the Arduino has (8kB).
+  // It is also static so that it doesn't come off the heap and can be
+  // used in the global variables post build computation by the IDE.
+  // The size of DataLogEntry is currently sixteen bytes, which gives an
+  // array size of 16 * 240 = 3840 bytes (47% of SRAM).  This size
+  // also needs to fit in EEPROM (4kB), which it currently does, leaving
+  // 256B maximum for any other non-volatile data.  The EEPROM layout is
+  // the non-volatile data in the first 256B, followed by the data log.
+  
+  static const int            EEPROM_SIZE_BYTES                     = 4 * 1024;
+  static const int            MAX_NON_VOLATILE_CAR_DATA_SIZE_BYTES  = 256;
+  static const int            MAX_DATA_LOG_ENTRIES                  = 2 * 60 * 2;
+  static const int            DATA_LOG_EEPROM_OFFSET                = MAX_NON_VOLATILE_CAR_DATA_SIZE_BYTES;
+  static const unsigned long  DATA_LOG_ENTRY_INTERVAL_MS            = 500;
+  static const bool           DATA_LOG_OVERFLOW_ALLOWED             = true;
+  static const String         NON_VOLATILE_CAR_DATA_HEADER;
+  
+  static NonVolatileCarData m_NonVolatileCarData;
+  static DataLogEntry m_DataLog[MAX_DATA_LOG_ENTRIES];
+  
+  static_assert(sizeof(m_NonVolatileCarData) < MAX_NON_VOLATILE_CAR_DATA_SIZE_BYTES, "Non-volatile car data too large!");
+  static_assert((sizeof(m_DataLog) + sizeof(m_NonVolatileCarData)) < EEPROM_SIZE_BYTES, "Data will not fit in EEPROM!");
+
   // SERIAL PORTS
+  static const int SERIAL_PORT_TIMEOUT_MS = 1;
+  static const bool SERIAL_PORT_USE_RAW_DATA = false;
+  static const String SERIAL_PORT_DATA_REQUEST_STRING;
   HardwareSerial * m_pDataTransmitSerialPort;
   
   // MISC
@@ -262,6 +368,7 @@ private:
   static const int            AUTO_CENTERING_CALIBRATION_DELAY_MS     =  2000;
   static const int            AUTO_TURN_LEFT_SPEED                    = -80;
   static const int            AUTO_TURN_RIGHT_SPEED                   =  80;
+  static const int            AUTO_HALL_SENSOR_LAUNCH_COUNT           =  3;
   static const int            AUTO_HALL_SENSOR_COUNT_MAX_DIFF         =  2;
   static const unsigned long  AUTO_MAX_LENGTH_MS                      =  300000;  // Five minutes
   
@@ -281,20 +388,26 @@ private:
   static const unsigned int   STEERING_RIGHT_LIMIT_SWITCH_PIN         = 11;
   static const unsigned int   BRAKE_RELEASE_LIMIT_SWITCH_PIN          = 12;
   static const unsigned int   BRAKE_APPLY_LIMIT_SWITCH_PIN            = 13;
-  static const unsigned int   STEERING_ENCODER_PIN                    = 14;
-  static const unsigned int   SONAR_TRIGGER_PIN                       = 15;
-  static const unsigned int   SONAR_ECHO_PIN                          = 16;
+  static const unsigned int   SERIAL_3_TX_RESERVED                    = 14;
+  static const unsigned int   SERIAL_3_RX_RESERVED                    = 15;
+  static const unsigned int   SERIAL_2_TX_RESERVED                    = 16;
+  static const unsigned int   SERIAL_2_RX_RESERVED                    = 17;
   static const unsigned int   LEFT_HALL_SENSOR_PIN                    = 18;   // Must be a board interrupt pin
   static const unsigned int   RIGHT_HALL_SENSOR_PIN                   = 19;   // Must be a board interrupt pin
   static const unsigned int   STEERING_LIMIT_SWITCHES_INTERRUPT_PIN   = 20;   // Must be a board interrupt pin
   static const unsigned int   BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN      = 21;   // Must be a board interrupt pin
   static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 24;
   static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 25;
-  static const unsigned int   AUTONOMOUS_LED_PIN                      = 26;
-  static const unsigned int   DEBUG_OUTPUT_1_LED_PIN                  = 27;
-  static const unsigned int   DEBUG_OUTPUT_2_LED_PIN                  = 28;
-  static const unsigned int   DEBUG_OUTPUT_3_LED_PIN                  = 29;
-  static const unsigned int   DEBUG_OUTPUT_4_LED_PIN                  = 30;
+  static const unsigned int   AUTONOMOUS_READY_LED_PIN                = 26;
+  static const unsigned int   AUTONOMOUS_EXECUTING_LED_PIN            = 27;
+  static const unsigned int   DEBUG_OUTPUT_1_LED_PIN                  = 28;
+  static const unsigned int   DEBUG_OUTPUT_2_LED_PIN                  = 29;
+  static const unsigned int   DEBUG_OUTPUT_3_LED_PIN                  = 30;
+  static const unsigned int   DEBUG_OUTPUT_4_LED_PIN                  = 31;
+  static const unsigned int   EEPROM_RW_LED_PIN                       = 32;
+  static const unsigned int   STEERING_ENCODER_PIN                    = 51;
+  static const unsigned int   SONAR_TRIGGER_PIN                       = 52;
+  static const unsigned int   SONAR_ECHO_PIN                          = 53;
   
   // ANALOG PINS
   static const unsigned int   FRONT_AXLE_POTENTIOMETER_PIN            = 0;
@@ -309,22 +422,47 @@ private:
   static const int            RECALIBRATE_INPUT_CHANNEL               = 4;
   static const int            BRAKE_INPUT_CHANNEL                     = 5;
   static const int            MASTER_ENABLE_INPUT_CHANNEL             = 6;
-  static const int            NUM_MAGNETS_PER_WHEEL                   = 6;
+  static const int            NUM_MAGNETS_PER_WHEEL                   = 12;
   static const int            POTENTIOMETER_READ_SPACING_DELAY_MS     = 100;
   static const int            POTENTIOMETER_MAX_JITTER_VALUE          = 5;
   static const int            POTENTIOMETER_MAX_VALUE                 = 1024;
   static const int            ENCODER_MAX_VALUE                       = 4096;
+
+  // PHYSICAL CAR CONSTANTS
+  static constexpr double     WHEEL_AXLE_LEGNTH_INCHES                = 32.0;
+  static constexpr double     WHEEL_BASE_LENGTH_INCHES                = 61.0;
+  static constexpr double     WHEEL_DIAMETER_INCHES                   = 12.125;
+  static constexpr double     WHEEL_CIRCUMFERENCE_INCHES              = M_PI * WHEEL_DIAMETER_INCHES;
+  static constexpr double     WHEEL_LENGTH_PER_MAGNET_INCHES          = WHEEL_CIRCUMFERENCE_INCHES / NUM_MAGNETS_PER_WHEEL;
   
   // MISC
   static const int            OFF                                     = 0;
   static const int            ON                                      = 100;
   static const unsigned int   TENTH_OF_A_SECOND_DELAY_MS              = 100;
+  static const unsigned long  SERIAL_DATA_TRANSMIT_INTERVAL_MS        = 1000;
   static const unsigned long  PULSE_IN_TIMEOUT_US                     = 50000;
+  static constexpr double     INCHES_PER_FOOT                         = 12.0;
+  static constexpr double     DEGREES_TO_RADIANS                      = 2.0 * M_PI / 360.0;
   
   // DEBUG ASSIST
+  static const char           COMMAND_DISPLAY_DEBUG_PRINTS            = 'p';
+  static const char           COMMAND_DISPLAY_DATA_LOG                = 'l';
+  static const char           COMMAND_CLEAR_DATA_LOG                  = 'c';
+  static const char           COMMAND_SEND_SERIAL_DATA                = 's';
+  static const char           COMMAND_DISPLAY_EEPROM                  = 'd';
+  static const char           COMMAND_ERASE_EEPROM                    = 'e';
+  static const char           COMMAND_RESTORE_FROM_EEPROM             = 'r';
+  static const char           COMMAND_WRITE_TO_EEPROM                 = 'w';
+  static const char           COMMAND_NEW_LINE                        = '\n';
+  static const char           COMMAND_CARRIAGE_RETURN                 = '\r';
   static const bool           DEBUG_PRINTS                            = false;
+  static const bool           DEBUG_COMMANDS                          = true;
   static const unsigned long  DEBUG_PRINT_INTERVAL_MS                 = 3000;
 };
+
+// The car object comes off the heap (not included in memory usage analysis).
+// Make sure the size is reasonable to prevent strange runtime issues.
+static_assert(sizeof(SoapBoxDerbyCar) < 256, "Instance size greater than 256B, review memory use!");
 
 #endif // SOAPBOXDERBYCAR_HPP
 
