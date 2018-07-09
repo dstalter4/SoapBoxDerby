@@ -1,4 +1,6 @@
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
 #include <Servo.h>
+#include <EEPROM.h> 
 
 // DIGITAL PINS
 static const unsigned int   YAW_INPUT_PIN                           = 2;
@@ -15,6 +17,7 @@ static const unsigned int   LEFT_HALL_SENSOR_PIN                    = 18;   // M
 static const unsigned int   RIGHT_HALL_SENSOR_PIN                   = 19;   // Must be a board interrupt pin
 static const unsigned int   STEERING_LIMIT_SWITCHES_INTERRUPT_PIN   = 20;   // Must be a board interrupt pin
 static const unsigned int   BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN      = 21;   // Must be a board interrupt pin
+static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 24;
 static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 25;
 static const unsigned int   AUTONOMOUS_LED_PIN                      = 26;
 static const unsigned int   DEBUG_OUTPUT_1_LED_PIN                  = 27;
@@ -35,11 +38,12 @@ void SpeedControllerTest();
 void SteeringLimitIsr();
 void BrakeLimitIsr();
 void LimitSwitchTest();
-void AutoSwitchTest();
+void SwitchesTest();
 void LeftHallIsr();
 void RightHallIsr();
 void PotentiometerTest();
 void HBridgeTest();
+void EepromTest();
 
 void setup()
 {
@@ -64,9 +68,10 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN), SteeringLimitIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN), BrakeLimitIsr, CHANGE);
 
-  // auto switch test
+  // switches test
   pinMode(AUTONOMOUS_SWITCH_PIN, INPUT_PULLUP);
   pinMode(AUTONOMOUS_LED_PIN, OUTPUT);
+  pinMode(SERIAL_TRANSMIT_SWITCH_PIN, INPUT_PULLUP);
 
   // connect ISRs for hall sensors
   attachInterrupt(digitalPinToInterrupt(LEFT_HALL_SENSOR_PIN), LeftHallIsr, CHANGE);
@@ -95,9 +100,10 @@ void loop()
   //ControllerInputTest();
   //SpeedControllerTest();
   //LimitSwitchTest();
-  //AutoSwitchTest();
+  //SwitchesTest();
   //PotentiometerTest();
   //HBridgeTest();
+  //EepromTest();
 }
 
 void LeftHallIsr()
@@ -151,14 +157,18 @@ void SerialTest()
     int32_t inAuto;
   };
   
-  static SerialData serialData = {95,1,12345,340,-7,2,-18,3,0,4,0,-58,987};
+  //static SerialData serialData = {95,1,12345,340,-7,2,-18,3,0,4,0,-58,987};
   //static SerialData serialData = {64,65,66,67,68,69,70,71,72,73,74,75,76};
   //static SerialData serialData = {255,0,255,0,255,0,255,0,255,0,255,0,255};
+  static SerialData serialData = {0,0,1,0,1,0,0,1,0,1,0,340,0};
   //byte * pData = reinterpret_cast<byte*>(&serialData);
+  while (Serial3.readString() != "pi")
+  {
+  }
   
   static int x = 0;
   Serial.print("SerialTest: ");
-  Serial.println(x++);
+  Serial.println(++x);
 
   Serial3.println("SBDC");
   Serial3.println(serialData.steerMotorSpeed);
@@ -174,6 +184,56 @@ void SerialTest()
   Serial3.println(serialData.brakeApplyLimit);
   Serial3.println(serialData.potentiometer);
   Serial3.println(serialData.inAuto);
+
+  if (serialData.steerMotorSpeed >= 0)
+  {
+    serialData.steerMotorSpeed += 5;
+    if (serialData.steerMotorSpeed == 100)
+    {
+      serialData.steerMotorSpeed = -5;
+    }
+  }
+  else
+  {
+    serialData.steerMotorSpeed -= 5;
+    if (serialData.steerMotorSpeed == -100)
+    {
+      serialData.steerMotorSpeed = 0;
+    }
+  }
+
+  serialData.brakeRelease = !static_cast<bool>(serialData.brakeRelease);
+  serialData.brakeApply = !static_cast<bool>(serialData.brakeApply);
+  serialData.leftHallVal = !static_cast<bool>(serialData.leftHallVal);
+  serialData.rightHallVal = !static_cast<bool>(serialData.rightHallVal);
+
+  serialData.leftHallCount++;
+  serialData.rightHallCount++;
+
+  serialData.brakeReleaseLimit = !static_cast<bool>(serialData.brakeReleaseLimit);
+  serialData.brakeApplyLimit = !static_cast<bool>(serialData.brakeApplyLimit);
+
+  switch (serialData.potentiometer)
+  {
+    case 340:
+    {
+      serialData.potentiometer = 325;
+      break;
+    }
+    case 325:
+    {
+      serialData.potentiometer = 355;
+      break;
+    }
+    case 355:
+    default:
+    {
+      serialData.potentiometer = 340;
+      break;
+    }
+  }
+
+  serialData.inAuto = !static_cast<bool>(serialData.inAuto);
   
   /*
   // This prints raw data with a byte pointer
@@ -187,6 +247,7 @@ void SerialTest()
   */
 
   // Display any data that Serial3 receives
+  /*
   while (Serial3.available())
   {
     Serial.print(Serial3.read());
@@ -194,6 +255,7 @@ void SerialTest()
   
   Serial.println();
   delay(3000);
+  */
 
   /*
   // Old test
@@ -369,11 +431,15 @@ void LimitSwitchTest()
   delay(500);
 }
 
-void AutoSwitchTest()
+void SwitchesTest()
 {
   int autoSwitch = digitalRead(AUTONOMOUS_SWITCH_PIN);
   digitalWrite(AUTONOMOUS_LED_PIN, autoSwitch);
+  Serial.print("Auto switch: ");
   Serial.println(autoSwitch);
+  int serialTransmitSwitch = digitalRead(SERIAL_TRANSMIT_SWITCH_PIN);
+  Serial.print("Serial switch: ");
+  Serial.println(serialTransmitSwitch);
   delay(500);
 }
 
@@ -415,6 +481,93 @@ void HBridgeTest()
     //analogWrite(24, i);
     //analogWrite(25, i);
     delay(100);
+  }
+}
+
+void EepromTest()
+{
+  if (Serial.available())
+  {
+    switch (Serial.read())
+    {
+      case 'w':
+      {
+        // Empirical measurement, writing all of EEPROM takes 14 seconds
+        
+        unsigned long writeStartTime = millis();
+        
+        for (size_t i = 0; i < EEPROM.length(); i++)
+        {
+          EEPROM.write(i, i);
+        }
+
+        unsigned long writeEndTime = millis();
+        
+        Serial.print("Write start time: ");
+        Serial.println(writeStartTime);
+        Serial.print("Write end time: ");
+        Serial.println(writeEndTime);
+        Serial.print("Write time: ");
+        Serial.println(writeEndTime - writeStartTime);
+        Serial.println();
+        Serial.println();
+        
+        break;
+      }
+      case 'r':
+      {
+        // Empirical measurement, reading all of EEPROM takes 10 milliseconds
+        Serial.println("Enter offset (512B chunks).");
+        while (!Serial.available())
+        {
+        }
+
+        int offset = Serial.read() - '0';
+        if (offset >= 8)
+        {
+          Serial.println("Invalid EEPROM offset.");
+          break;
+        }
+        Serial.print("Reading from 512B offset: ");
+        Serial.println(offset);
+        
+        unsigned long readStartTime = millis();
+
+        // EEPROM on Mega is 4kB, => chunk it into 8 x 512B for displaying
+        const size_t EEPROM_CHUNK_SIZE = EEPROM.length() / 8;
+        byte data[EEPROM_CHUNK_SIZE];
+        for (size_t i = 0; i < EEPROM_CHUNK_SIZE; i++)
+        {
+          data[i] = EEPROM.read(i + (offset * EEPROM_CHUNK_SIZE));
+        }
+        
+        unsigned long readEndTime = millis();
+
+        for (size_t i = 0; i < EEPROM_CHUNK_SIZE; i++)
+        {
+          Serial.print("Address ");
+          Serial.print(i + (offset * EEPROM_CHUNK_SIZE), HEX);
+          Serial.print(": ");
+          Serial.println(data[i]);
+        }
+
+        Serial.println();
+        Serial.print("Read start time: ");
+        Serial.println(readStartTime);
+        Serial.print("Read end time: ");
+        Serial.println(readEndTime);
+        Serial.print("Read time: ");
+        Serial.println(readEndTime - readStartTime);
+        Serial.println();
+        Serial.println();
+        
+        break;
+      }
+      default:
+      {
+        break;
+      }
+    }
   }
 }
 
