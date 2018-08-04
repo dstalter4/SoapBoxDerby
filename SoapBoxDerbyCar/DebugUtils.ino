@@ -44,22 +44,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 void SoapBoxDerbyCar::ConfigureDebugPins()
 {
-  pinMode(DEBUG_OUTPUT_1_LED_PIN, OUTPUT);
-  pinMode(DEBUG_OUTPUT_2_LED_PIN, OUTPUT);
-  pinMode(DEBUG_OUTPUT_3_LED_PIN, OUTPUT);
-  pinMode(DEBUG_OUTPUT_4_LED_PIN, OUTPUT);
-  pinMode(AUTONOMOUS_READY_LED_PIN, OUTPUT);
-  pinMode(AUTONOMOUS_EXECUTING_LED_PIN, OUTPUT);
-  pinMode(EEPROM_RW_LED_PIN, OUTPUT);
-  
-  // Start with all LEDs off
-  digitalWrite(DEBUG_OUTPUT_1_LED_PIN, LOW);
-  digitalWrite(DEBUG_OUTPUT_2_LED_PIN, LOW);
-  digitalWrite(DEBUG_OUTPUT_3_LED_PIN, LOW);
-  digitalWrite(DEBUG_OUTPUT_4_LED_PIN, LOW);
-  digitalWrite(AUTONOMOUS_READY_LED_PIN, LOW);
-  digitalWrite(AUTONOMOUS_EXECUTING_LED_PIN, LOW);
-  digitalWrite(EEPROM_RW_LED_PIN, LOW);
+  // Loop over all the debug LEDs present
+  for (unsigned int i = DEBUG_OUTPUT_LEDS_START_PIN; i <= DEBUG_OUTPUT_LEDS_END_PIN; i++)
+  {
+    // Configure the pin as an output and start with it off
+    pinMode(i, OUTPUT);
+    digitalWrite(i, LOW);
+  }
 }
 
 
@@ -76,15 +67,18 @@ void SoapBoxDerbyCar::ProcessAssert()
   bool ledState = static_cast<bool>(HIGH);
   while (true)
   {
-    digitalWrite(DEBUG_OUTPUT_1_LED_PIN, static_cast<int>(ledState));
-    digitalWrite(DEBUG_OUTPUT_2_LED_PIN, static_cast<int>(ledState));
-
-    ledState = !ledState;
-
     if (m_pSoapBoxDerbyCar != nullptr)
     {
       EmergencyStop(m_pSoapBoxDerbyCar);
     }
+    
+    // Flash all the LEDs to indicate something is wrong
+    for (unsigned int i = DEBUG_OUTPUT_LEDS_START_PIN; i <= DEBUG_OUTPUT_LEDS_END_PIN; i++)
+    {
+      digitalWrite(i, static_cast<int>(ledState));
+    }
+
+    ledState = !ledState;
     
     const int ASSERT_DELAY_MS = 1000;    
     delay(ASSERT_DELAY_MS);
