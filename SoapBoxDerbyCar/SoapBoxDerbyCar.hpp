@@ -22,7 +22,8 @@
 ///           end up.  EEPROM is where non-volatile user data can be stored.
 ///
 ///           When wiring things with a resitor, the resistor goes from voltage
-///           to signal.  Use 1k-5k ohm resistors.
+///           to signal.  Use 1k-5k ohm resistors.  The LEDs are wired with
+///           220 ohm resistors on them.
 ///
 /// Edit History:
 /// - dts 19-OCT-2017 Documentation and headers added.
@@ -396,18 +397,26 @@ private:
   static const unsigned int   RIGHT_HALL_SENSOR_PIN                   = 19;   // Must be a board interrupt pin
   static const unsigned int   STEERING_LIMIT_SWITCHES_INTERRUPT_PIN   = 20;   // Must be a board interrupt pin
   static const unsigned int   BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN      = 21;   // Must be a board interrupt pin
-  static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 24;
-  static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 25;
-  static const unsigned int   AUTONOMOUS_READY_LED_PIN                = 26;
-  static const unsigned int   AUTONOMOUS_EXECUTING_LED_PIN            = 27;
-  static const unsigned int   DEBUG_OUTPUT_1_LED_PIN                  = 28;
-  static const unsigned int   DEBUG_OUTPUT_2_LED_PIN                  = 29;
-  static const unsigned int   DEBUG_OUTPUT_3_LED_PIN                  = 30;
-  static const unsigned int   DEBUG_OUTPUT_4_LED_PIN                  = 31;
-  static const unsigned int   EEPROM_RW_LED_PIN                       = 32;
+  static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 22;
+  static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 23;
+  static const unsigned int   SWITCH_3_RESERVED                       = 24;
+  static const unsigned int   SWITCH_4_RESERVED                       = 25;
+  static const unsigned int   LEFT_HALL_SENSOR_LED_PIN                = 26;
+  static const unsigned int   STEER_LIMIT_SWITCHES_LED_PIN            = 27;
+  static const unsigned int   RIGHT_HALL_SENSOR_LED_PIN               = 28;
+  static const unsigned int   BRAKE_LIMIT_SWITCHES_LED_PIN            = 29;
+  static const unsigned int   AUTONOMOUS_READY_LED_PIN                = 30;
+  static const unsigned int   EEPROM_RW_LED_PIN                       = 31;
+  static const unsigned int   DEBUG_OUTPUT_7_LED_PIN                  = 32;
+  static const unsigned int   DEBUG_OUTPUT_8_LED_PIN                  = 33;
+  static const unsigned int   DEBUG_OUTPUT_9_LED_PIN                  = 34;
+  static const unsigned int   AUTONOMOUS_EXECUTING_LED_PIN            = 35;
   static const unsigned int   STEERING_ENCODER_PIN                    = 51;
   static const unsigned int   SONAR_TRIGGER_PIN                       = 52;
   static const unsigned int   SONAR_ECHO_PIN                          = 53;
+
+  static const unsigned int   DEBUG_OUTPUT_LEDS_START_PIN             = LEFT_HALL_SENSOR_LED_PIN;
+  static const unsigned int   DEBUG_OUTPUT_LEDS_END_PIN               = AUTONOMOUS_EXECUTING_LED_PIN;
   
   // ANALOG PINS
   static const unsigned int   FRONT_AXLE_POTENTIOMETER_PIN            = 0;

@@ -50,6 +50,8 @@ void SoapBoxDerbyCar::ConfigureSensors()
   // Configure the sensor pin modes
   pinMode(AUTONOMOUS_SWITCH_PIN, INPUT_PULLUP);
   pinMode(SERIAL_TRANSMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(SWITCH_3_RESERVED, INPUT_PULLUP);
+  pinMode(SWITCH_4_RESERVED, INPUT_PULLUP);
   
   pinMode(STEERING_ENCODER_PIN, INPUT);
 
@@ -100,7 +102,7 @@ void SoapBoxDerbyCar::SteeringLimitSwitchInterruptHandler()
   
   // Debug visual assist (reversed logic since this is falling edge)
   int ledState = (interruptEdge == RISING_EDGE) ? LOW : HIGH;
-  digitalWrite(DEBUG_OUTPUT_3_LED_PIN, ledState);
+  digitalWrite(STEER_LIMIT_SWITCHES_LED_PIN, ledState);
 
   if (interruptEdge == FALLING_EDGE)
   {
@@ -135,7 +137,7 @@ void SoapBoxDerbyCar::BrakeLimitSwitchInterruptHandler()
   
   // Debug visual assist (reversed logic since this is falling edge)
   int ledState = (interruptEdge == RISING_EDGE) ? LOW : HIGH;
-  digitalWrite(DEBUG_OUTPUT_4_LED_PIN, ledState);
+  digitalWrite(BRAKE_LIMIT_SWITCHES_LED_PIN, ledState);
 
   if (interruptEdge == FALLING_EDGE)
   {
@@ -157,11 +159,11 @@ void SoapBoxDerbyCar::ReadLimitSwitches()
   
   if ((m_LeftSteeringLimitSwitchValue == 1) || (m_RightSteeringLimitSwitchValue == 1))
   {
-    digitalWrite(DEBUG_OUTPUT_3_LED_PIN, HIGH);
+    digitalWrite(STEER_LIMIT_SWITCHES_LED_PIN, HIGH);
   }
   else
   {
-    digitalWrite(DEBUG_OUTPUT_3_LED_PIN, LOW);
+    digitalWrite(STEER_LIMIT_SWITCHES_LED_PIN, LOW);
   }
   
   m_BrakeReleaseLimitSwitchValue = digitalRead(BRAKE_RELEASE_LIMIT_SWITCH_PIN);
@@ -169,11 +171,11 @@ void SoapBoxDerbyCar::ReadLimitSwitches()
   
   if ((m_BrakeReleaseLimitSwitchValue == 1) || (m_BrakeApplyLimitSwitchValue == 1))
   {
-    digitalWrite(DEBUG_OUTPUT_4_LED_PIN, HIGH);
+    digitalWrite(BRAKE_LIMIT_SWITCHES_LED_PIN, HIGH);
   }
   else
   {
-    digitalWrite(DEBUG_OUTPUT_4_LED_PIN, LOW);
+    digitalWrite(BRAKE_LIMIT_SWITCHES_LED_PIN, LOW);
   }
 }
 
