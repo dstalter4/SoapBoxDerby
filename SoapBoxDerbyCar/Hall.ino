@@ -79,7 +79,7 @@ void SoapBoxDerbyCar::LeftHallSensorInterruptHandler()
   }
   
   // Update the visual LED
-  digitalWrite(DEBUG_OUTPUT_1_LED_PIN, static_cast<int>(leftSensorInterruptEdge));
+  digitalWrite(LEFT_HALL_SENSOR_LED_PIN, static_cast<int>(leftSensorInterruptEdge));
 }
 
 
@@ -121,7 +121,7 @@ void SoapBoxDerbyCar::RightHallSensorInterruptHandler()
   }
   
   // Update the visual LED
-  digitalWrite(DEBUG_OUTPUT_2_LED_PIN, static_cast<int>(rightSensorInterruptEdge));
+  digitalWrite(RIGHT_HALL_SENSOR_LED_PIN, static_cast<int>(rightSensorInterruptEdge));
 }
 
 
@@ -168,7 +168,7 @@ void SoapBoxDerbyCar::ReadHallSensors()
     {
       bSawLeft = true;
       m_LeftHallCount++;
-      digitalWrite(DEBUG_OUTPUT_1_LED_PIN, HIGH);
+      digitalWrite(LEFT_HALL_SENSOR_LED_PIN, HIGH);
     }
   }
   else
@@ -176,7 +176,7 @@ void SoapBoxDerbyCar::ReadHallSensors()
     // The magnetic field either isn't present or has
     // fully passed.  Indicate we can see another one.
     bSawLeft = false;
-    digitalWrite(DEBUG_OUTPUT_1_LED_PIN, LOW);
+    digitalWrite(LEFT_HALL_SENSOR_LED_PIN, LOW);
   }
 
   // Keep track of whether or not the sensor has been seen
@@ -191,7 +191,7 @@ void SoapBoxDerbyCar::ReadHallSensors()
     {
       bSawRight = true;
       m_RightHallCount++;
-      digitalWrite(DEBUG_OUTPUT_2_LED_PIN, HIGH);
+      digitalWrite(RIGHT_HALL_SENSOR_LED_PIN, HIGH);
     }
   }
   else
@@ -199,7 +199,7 @@ void SoapBoxDerbyCar::ReadHallSensors()
     // The magnetic field either isn't present or has
     // fully passed.  Indicate we can see another one.
     bSawRight = false;
-    digitalWrite(DEBUG_OUTPUT_2_LED_PIN, LOW);
+    digitalWrite(RIGHT_HALL_SENSOR_LED_PIN, LOW);
   }
 }
 
