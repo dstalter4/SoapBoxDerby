@@ -57,8 +57,11 @@ void SoapBoxDerbyCar::ConfigureSensors()
 
   // @todo: There are phantom interrupts being triggered by the limit
   // switches.  Stick to polling mode until the issue can be investigated.
+  // Note: Using a limit switch as an interrupt may require still configuring
+  // the pin as INPUT_PULLUP or a physical resistor to be connected.
   pinMode(STEERING_LEFT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
   pinMode(STEERING_RIGHT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN, INPUT_PULLUP);
   //attachInterrupt(digitalPinToInterrupt(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN), SteeringLimitSwitchInterruptHandler, CHANGE);
   
   // Even though the Hall sensor pins will be used for interrupts, still
