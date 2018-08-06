@@ -63,7 +63,14 @@ void setup()
 ////////////////////////////////////////////////////////////////////////////////
 void loop()
 {
-  SoapBoxDerbyCar::GetSingletonInstance()->Run();
+  Serial.println(F("Entering run..."));
+
+  // Even though loop() is already inside a while (true), this
+  // provides an easy way to display a message once before entering run.
+  while (true)
+  {
+    SoapBoxDerbyCar::GetSingletonInstance()->Run();
+  }
 }
 
 
@@ -230,5 +237,22 @@ void SoapBoxDerbyCar::Run()
       ReadSerialInput();
     }
   }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Method: EmergencyStop
+///
+/// Details:  Emergency stop of the soap box derby car.  Configures each speed
+///           controller with a value that will cause the car to enter a safe,
+///           known state.
+////////////////////////////////////////////////////////////////////////////////
+void SoapBoxDerbyCar::EmergencyStop(SoapBoxDerbyCar * pInstance)
+{
+  // Emergency stop will ignore steering and unconditionally apply the brake
+  pInstance->m_SteeringDirection = NONE;
+  pInstance->m_pSteeringSpeedController->SetSpeed(OFF);
+  
+  pInstance->ApplyBrake();
 }
 
