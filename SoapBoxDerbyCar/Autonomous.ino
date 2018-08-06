@@ -96,11 +96,6 @@ void SoapBoxDerbyCar::AutonomousRoutine()
       break;
     }
     
-    // Release the brake.  This MUST be done continuously
-    // in autonomous to compensate the back drive and make
-    // sure the brake speed controller is not always left on.
-    ReleaseBrake();
-
     // Read sensors autonomous will need and use.
     // Hall sensors are interrupt driven.
     ReadLimitSwitches();
@@ -144,9 +139,11 @@ void SoapBoxDerbyCar::AutonomousRoutine()
 void SoapBoxDerbyCar::ExitAutonomous()
 {
   Serial.println(F("Autonomous: Exiting..."));
+
+  // Apply the brake
+  ApplyBrake();
   
   // Stop the motors
-  ApplyBrake();
   SetSteeringSpeedControllerValue(OFF);
   
   // Reset the Hall sensor counters
