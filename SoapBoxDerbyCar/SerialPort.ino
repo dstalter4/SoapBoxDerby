@@ -98,7 +98,7 @@ void SoapBoxDerbyCar::SendCarSerialData()
   static int transmitCount = 0;
   static unsigned long lastTimeStamp = 0;
   
-  const int NUM_FIELDS_TO_TRANSMIT = 13;
+  const int NUM_FIELDS_TO_TRANSMIT = 10;
   int32_t serialData[NUM_FIELDS_TO_TRANSMIT] = {};
   static_assert(sizeof(serialData) == NUM_FIELDS_TO_TRANSMIT * 4, "Serial data size is not using 32 bit integers!");
 
@@ -111,16 +111,13 @@ void SoapBoxDerbyCar::SendCarSerialData()
   // Package together all of the data
   int transmitDataIndex = 0;
   serialData[transmitDataIndex++] = m_CurrentSteeringValue;
-  serialData[transmitDataIndex++] = m_bReleasingBrake;
-  serialData[transmitDataIndex++] = m_bApplyingBrake;
+  serialData[transmitDataIndex++] = m_bBrakeApplied;
   serialData[transmitDataIndex++] = m_LeftHallSensorValue;
   serialData[transmitDataIndex++] = m_RightHallSensorValue;
   serialData[transmitDataIndex++] = m_LeftHallCount;
   serialData[transmitDataIndex++] = m_RightHallCount;
   serialData[transmitDataIndex++] = m_LeftSteeringLimitSwitchValue;
   serialData[transmitDataIndex++] = m_RightSteeringLimitSwitchValue;
-  serialData[transmitDataIndex++] = m_BrakeReleaseLimitSwitchValue;
-  serialData[transmitDataIndex++] = m_BrakeApplyLimitSwitchValue;
   serialData[transmitDataIndex++] = m_FrontAxlePotentiometerValue;
   serialData[transmitDataIndex++] = m_bIsAutonomousExecuting;
 

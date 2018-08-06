@@ -202,16 +202,21 @@ private:
   // MOTOR CONTROL
   void SetSteeringDirection(int value);
   void SetSteeringSpeedControllerValue(int value);
-  void ApplyBrake(bool bWaitForDone = false);
-  void ReleaseBrake(bool bWaitForDone = false);
   void UpdateSpeedControllers();
+
+  // BRAKE CONTROL
+  void ApplyBrake();
+  void ArmBrake();
+  void UpdateBrakeControl();
   
   // SENSORS
   void ConfigureSensors();
-  
+
+  // ENCODERS
   void CalibrateSteeringEncoder();
   void ReadEncoders();
-  
+
+  // HALL EFFECT
   static void LeftHallSensorInterruptHandler();
   static void RightHallSensorInterruptHandler();
   inline void IncrementLeftHallSensorCount() { m_LeftWheelDistanceInches = ++m_LeftHallCount * WHEEL_LENGTH_PER_MAGNET_INCHES; }
@@ -219,15 +224,16 @@ private:
   void ResetHallSensorCounts();
   void ReadHallSensors();
 
+  // LIMIT SWITCHES
   static void SteeringLimitSwitchInterruptHandler();
-  static void BrakeLimitSwitchInterruptHandler();
   inline void DisableSteeringSpeedController() { m_pSteeringSpeedController->SetSpeed(OFF); }
-  inline void DisableBrakeSpeedController() { m_pBrakeSpeedController->SetSpeed(OFF); }
   void ReadLimitSwitches();
-  
+
+  // POTENTIOMETERS
   void CalibrateSteeringPotentiometer();
   void ReadPotentiometers();
-  
+
+  // SONAR
   void ReadSonarSensors();
 
   // TIMER
@@ -282,18 +288,17 @@ private:
   
   // SPEED CONTROLLERS
   PwmSpeedController * m_pSteeringSpeedController;
-  PwmSpeedController * m_pBrakeSpeedController;
   SteeringDirection m_SteeringDirection;
   int m_CurrentSteeringValue;
-  bool m_bReleasingBrake;
-  bool m_bApplyingBrake;
+
+  // BRAKE CONTROL
   bool m_bBrakeApplied;
   
   // ENCODERS
   int m_SteeringEncoderValue;
   int m_SteeringEncoderMultiplier;
   
-  // HALL SENSORS
+  // HALL EFFECT
   // Some are volatile because they are used in an interrupt handler.
   int m_LeftHallSensorValue;
   int m_RightHallSensorValue;
@@ -305,8 +310,6 @@ private:
   // LIMIT SWITCHES
   int m_LeftSteeringLimitSwitchValue;
   int m_RightSteeringLimitSwitchValue;
-  int m_BrakeReleaseLimitSwitchValue;
-  int m_BrakeApplyLimitSwitchValue;
   
   // POTENTIOMETERS
   int m_FrontAxlePotentiometerValue;
@@ -315,7 +318,7 @@ private:
   int m_FrontAxlePotCenterValue;
   int m_LastGoodPotValue;
   
-  // SONAR SENSORS
+  // SONAR
   int m_SonarDistanceInches;
 
   // DATA LOGGING
@@ -363,9 +366,9 @@ private:
   //////////////////////////////////////////////////////////////////////////////
   
   // AUTONOMOUS
-  static const int            AUTO_CENTERING_CALIBRATION_LEFT_SPEED   = -30;
-  static const int            AUTO_CENTERING_CALIBRATION_RIGHT_SPEED  =  30;
-  static const int            AUTO_CENTERING_CALIBRATION_CENTER_SPEED = -20;
+  static const int            AUTO_CENTERING_CALIBRATION_LEFT_SPEED   = -50;
+  static const int            AUTO_CENTERING_CALIBRATION_RIGHT_SPEED  =  50;
+  static const int            AUTO_CENTERING_CALIBRATION_CENTER_SPEED = -50;
   static const int            AUTO_CENTERING_CALIBRATION_DELAY_MS     =  2000;
   static const int            AUTO_TURN_LEFT_SPEED                    = -80;
   static const int            AUTO_TURN_RIGHT_SPEED                   =  80;
@@ -384,11 +387,11 @@ private:
   static const unsigned int   CH5_INPUT_PIN                           = 6;    // Derby car brake control
   static const unsigned int   CH6_INPUT_PIN                           = 7;    // Master enable (disable all input control)
   static const unsigned int   STEERING_SPEED_CONTROLLER_PIN           = 8;
-  static const unsigned int   BRAKE_SPEED_CONTROLLER_PIN              = 9;
+  static const unsigned int   BRAKE_MAGNET_RELAY_PIN                  = 9;
   static const unsigned int   STEERING_LEFT_LIMIT_SWITCH_PIN          = 10;
   static const unsigned int   STEERING_RIGHT_LIMIT_SWITCH_PIN         = 11;
-  static const unsigned int   BRAKE_RELEASE_LIMIT_SWITCH_PIN          = 12;
-  static const unsigned int   BRAKE_APPLY_LIMIT_SWITCH_PIN            = 13;
+  static const unsigned int   PIN_12_RESERVED                         = 12;
+  static const unsigned int   PIN_13_RESERVED                         = 13;
   static const unsigned int   SERIAL_3_TX_RESERVED                    = 14;
   static const unsigned int   SERIAL_3_RX_RESERVED                    = 15;
   static const unsigned int   SERIAL_2_TX_RESERVED                    = 16;
@@ -396,7 +399,7 @@ private:
   static const unsigned int   LEFT_HALL_SENSOR_PIN                    = 18;   // Must be a board interrupt pin
   static const unsigned int   RIGHT_HALL_SENSOR_PIN                   = 19;   // Must be a board interrupt pin
   static const unsigned int   STEERING_LIMIT_SWITCHES_INTERRUPT_PIN   = 20;   // Must be a board interrupt pin
-  static const unsigned int   BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN      = 21;   // Must be a board interrupt pin
+  static const unsigned int   PIN_21_INTERRUPT_RESERVED               = 21;   // Must be a board interrupt pin
   static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 22;
   static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 23;
   static const unsigned int   SWITCH_3_RESERVED                       = 24;
@@ -404,7 +407,7 @@ private:
   static const unsigned int   LEFT_HALL_SENSOR_LED_PIN                = 26;
   static const unsigned int   STEER_LIMIT_SWITCHES_LED_PIN            = 27;
   static const unsigned int   RIGHT_HALL_SENSOR_LED_PIN               = 28;
-  static const unsigned int   BRAKE_LIMIT_SWITCHES_LED_PIN            = 29;
+  static const unsigned int   BRAKE_MAGNET_RELAY_LED_PIN              = 29;
   static const unsigned int   AUTONOMOUS_READY_LED_PIN                = 30;
   static const unsigned int   EEPROM_RW_LED_PIN                       = 31;
   static const unsigned int   DEBUG_OUTPUT_7_LED_PIN                  = 32;
@@ -432,7 +435,6 @@ private:
   static const int            BRAKE_INPUT_CHANNEL                     = 5;
   static const int            MASTER_ENABLE_INPUT_CHANNEL             = 6;
   static const int            NUM_MAGNETS_PER_WHEEL                   = 12;
-  static const int            POTENTIOMETER_READ_SPACING_DELAY_MS     = 100;
   static const int            POTENTIOMETER_MAX_JITTER_VALUE          = 5;
   static const int            POTENTIOMETER_MAX_VALUE                 = 1024;
   static const int            ENCODER_MAX_VALUE                       = 4096;

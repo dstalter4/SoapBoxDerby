@@ -216,8 +216,8 @@ void SoapBoxDerbyCar::DisplayEeprom()
 {
   digitalWrite(EEPROM_RW_LED_PIN, HIGH);
 
-  Serial.println("EEPROM");
-  Serial.println("------");
+  Serial.println(F("EEPROM"));
+  Serial.println(F("------"));
   
   for (size_t i = 0; i < EEPROM.length(); i++)
   {

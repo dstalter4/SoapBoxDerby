@@ -1,3 +1,7 @@
+ESC
+http://www.instructables.com/id/ESC-Programming-on-Arduino-Hobbyking-ESC/
+https://hobbyking.com/en_us/hobbywing-quicrun-60a-2s-3s-waterproof-brushed-esc-for-1-10.html
+
 RP LIDAR
 http://www.robopeak.com/blog/?p=611
 https://github.com/robopeak/rplidar_arduino

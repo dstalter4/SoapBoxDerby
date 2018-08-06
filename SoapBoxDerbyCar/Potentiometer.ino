@@ -48,9 +48,12 @@
 void SoapBoxDerbyCar::CalibrateSteeringPotentiometer()
 {
   static int calibrationAttempt = 0;
-  Serial.println(F("Centering steering by pot..."));
+  Serial.println(F("\nCentering steering by pot..."));
   Serial.print(F("Calibration attempt #"));
   Serial.println(++calibrationAttempt);
+
+  // A recalibration can be triggered, so reset the status variable
+  m_bCalibrationComplete = false;
 
   // @todo: Debug why this sometimes gets stuck.
   
@@ -103,17 +106,17 @@ void SoapBoxDerbyCar::CalibrateSteeringPotentiometer()
   m_FrontAxlePotMaxRightValue = m_FrontAxlePotentiometerValue;
   
   // Compute and save off the center value
-  m_FrontAxlePotCenterValue = m_FrontAxlePotMaxRightValue + ((m_FrontAxlePotMaxLeftValue - m_FrontAxlePotMaxRightValue) / 2);
+  m_FrontAxlePotCenterValue = m_FrontAxlePotMaxLeftValue + ((m_FrontAxlePotMaxRightValue - m_FrontAxlePotMaxLeftValue) / 2);
   
   // Return to center
   SetSteeringSpeedControllerValue(AUTO_CENTERING_CALIBRATION_CENTER_SPEED);
   do
   {
-    // Don't read too fast, or the potentiometer values may be inaccurate
-    delay(POTENTIOMETER_READ_SPACING_DELAY_MS);
+    // Update limit switch status in case we overshoot somehow
+    ReadLimitSwitches();
     ReadPotentiometers();
   }
-  while (m_FrontAxlePotentiometerValue < m_FrontAxlePotCenterValue);
+  while ((m_FrontAxlePotentiometerValue > m_FrontAxlePotCenterValue) && (m_LeftSteeringLimitSwitchValue != 1));
   
   // Back to center, motor off
   SetSteeringSpeedControllerValue(OFF);
@@ -134,7 +137,9 @@ void SoapBoxDerbyCar::CalibrateSteeringPotentiometer()
   ReadPotentiometers();
   Serial.println(m_FrontAxlePotentiometerValue);
   Serial.print(F("Pot diff: "));
-  Serial.println(m_FrontAxlePotMaxLeftValue  - m_FrontAxlePotMaxRightValue);
+  Serial.println(m_FrontAxlePotMaxRightValue - m_FrontAxlePotMaxLeftValue);
+  Serial.print(F("1/2 Pot diff: "));
+  Serial.println((m_FrontAxlePotMaxRightValue - m_FrontAxlePotMaxLeftValue) / 2);
   Serial.println(F("Centering calibration complete..."));
   Serial.println();
 }
@@ -151,15 +156,15 @@ void SoapBoxDerbyCar::CenterSteeringByPotentiometer()
   // Get the latest potetiometer value
   ReadPotentiometers();
   
-  // If the pot value is greater then center, the angle is to the left,
+  // If the pot value is less then center, the angle is to the left,
   // so need to move back to the right.
-  if (m_FrontAxlePotentiometerValue >= (m_FrontAxlePotCenterValue + POTENTIOMETER_MAX_JITTER_VALUE))
+  if (m_FrontAxlePotentiometerValue <= (m_FrontAxlePotCenterValue - POTENTIOMETER_MAX_JITTER_VALUE))
   {
     SetSteeringSpeedControllerValue(AUTO_TURN_RIGHT_SPEED);
   }
-  // If the pot value is less then center, the angle is to the right,
+  // If the pot value is greater then center, the angle is to the right,
   // so need to move back to the left.
-  else if (m_FrontAxlePotentiometerValue <= (m_FrontAxlePotCenterValue - POTENTIOMETER_MAX_JITTER_VALUE))
+  else if (m_FrontAxlePotentiometerValue >= (m_FrontAxlePotCenterValue + POTENTIOMETER_MAX_JITTER_VALUE))
   {
     SetSteeringSpeedControllerValue(AUTO_TURN_LEFT_SPEED);
   }
@@ -214,7 +219,11 @@ void SoapBoxDerbyCar::CenterSteeringByPotentiometer()
 ////////////////////////////////////////////////////////////////////////////////
 void SoapBoxDerbyCar::ReadPotentiometers()
 {
+  // Arduino reference says it takes about 100us to read an analog input.
   m_FrontAxlePotentiometerValue = analogRead(FRONT_AXLE_POTENTIOMETER_PIN);
+  return;
+
+  // @todo: Turn logic below back on.
 
   if (m_bCalibrationComplete)
   {

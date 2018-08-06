@@ -63,7 +63,14 @@ void setup()
 ////////////////////////////////////////////////////////////////////////////////
 void loop()
 {
-  SoapBoxDerbyCar::GetSingletonInstance()->Run();
+  Serial.println(F("Entering run..."));
+
+  // Even though loop() is already inside a while (true), this
+  // provides an easy way to display a message once before entering run.
+  while (true)
+  {
+    SoapBoxDerbyCar::GetSingletonInstance()->Run();
+  }
 }
 
 
@@ -79,11 +86,8 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   m_bBrakeSwitch(false),
   m_bMasterEnable(false),
   m_pSteeringSpeedController(new PwmSpeedController(STEERING_SPEED_CONTROLLER_PIN)),
-  m_pBrakeSpeedController(new PwmSpeedController(BRAKE_SPEED_CONTROLLER_PIN)),
   m_SteeringDirection(NONE),
   m_CurrentSteeringValue(0),
-  m_bReleasingBrake(false),
-  m_bApplyingBrake(false),
   m_bBrakeApplied(false),
   m_SteeringEncoderValue(0),
   m_SteeringEncoderMultiplier(0),
@@ -95,8 +99,6 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   m_RightWheelDistanceInches(0.0),
   m_LeftSteeringLimitSwitchValue(0),
   m_RightSteeringLimitSwitchValue(0),
-  m_BrakeReleaseLimitSwitchValue(0),
-  m_BrakeApplyLimitSwitchValue(0),
   m_FrontAxlePotentiometerValue(0),
   m_FrontAxlePotMaxLeftValue(0),
   m_FrontAxlePotMaxRightValue(0),
@@ -124,8 +126,8 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   ConfigureSensors();
   ConfigureDebugPins();
 
-  // Apply the brake
-  ApplyBrake(true);
+  // Arm the brake
+  ArmBrake();
 
   // Center the steering
   CalibrateSteeringPotentiometer();
@@ -145,7 +147,6 @@ void SoapBoxDerbyCar::Run()
     Serial.println(F("Auto waiting..."));
 
     // In case we came from manual control, disable motors
-    ApplyBrake(true);
     SetSteeringSpeedControllerValue(OFF);
     
     // Wait until the controller tells auto to start
@@ -208,12 +209,11 @@ void SoapBoxDerbyCar::Run()
     // Make sure the controller is sending data and check the enable switch
     if (IsControllerOn() && m_bMasterEnable)
     {
-      // Update with the user control for steering and braking
+      // Update with the user control for steering
       UpdateSpeedControllers();
-    }
-    else
-    {
-      ApplyBrake();
+
+      // Update the state of the brake based on user input
+      UpdateBrakeControl();
     }
 
     // Log a data entry
@@ -237,5 +237,22 @@ void SoapBoxDerbyCar::Run()
       ReadSerialInput();
     }
   }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Method: EmergencyStop
+///
+/// Details:  Emergency stop of the soap box derby car.  Configures each speed
+///           controller with a value that will cause the car to enter a safe,
+///           known state.
+////////////////////////////////////////////////////////////////////////////////
+void SoapBoxDerbyCar::EmergencyStop(SoapBoxDerbyCar * pInstance)
+{
+  // Emergency stop will ignore steering and unconditionally apply the brake
+  pInstance->m_SteeringDirection = NONE;
+  pInstance->m_pSteeringSpeedController->SetSpeed(OFF);
+  
+  pInstance->ApplyBrake();
 }
 

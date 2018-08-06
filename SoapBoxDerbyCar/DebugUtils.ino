@@ -136,10 +136,8 @@ void SoapBoxDerbyCar::DisplayValues(bool bShowImmediately)
     Serial.println(m_LeftSteeringLimitSwitchValue);
     Serial.print(F("Right limit switch: "));
     Serial.println(m_RightSteeringLimitSwitchValue);
-    Serial.print(F("Brake release limit switch: "));
-    Serial.println(m_BrakeReleaseLimitSwitchValue);
-    Serial.print(F("Brake apply limit switch: "));
-    Serial.println(m_BrakeApplyLimitSwitchValue);
+    Serial.print(F("Brake relay state: "));
+    Serial.println(m_bBrakeApplied);
     
     Serial.print(F("Front axle potentiometer: "));
     Serial.println(m_FrontAxlePotentiometerValue);
