@@ -7,40 +7,59 @@ static const unsigned int   YAW_INPUT_PIN                           = 2;
 static const unsigned int   RECALIBRATE_INPUT_PIN                   = 5;
 static const unsigned int   BRAKE_INPUT_PIN                         = 6;
 static const unsigned int   MASTER_ENABLE_INPUT_PIN                 = 7;
+
 static const unsigned int   STEERING_SPEED_CONTROLLER_PIN           = 8;
-static const unsigned int   BRAKE_SPEED_CONTROLLER_PIN              = 9;
+static const unsigned int   BRAKE_MAGNET_RELAY_PIN                  = 9;
 static const unsigned int   STEERING_LEFT_LIMIT_SWITCH_PIN          = 10;
 static const unsigned int   STEERING_RIGHT_LIMIT_SWITCH_PIN         = 11;
-static const unsigned int   BRAKE_RELEASE_LIMIT_SWITCH_PIN          = 12;
-static const unsigned int   BRAKE_APPLY_LIMIT_SWITCH_PIN            = 13;
+
 static const unsigned int   LEFT_HALL_SENSOR_PIN                    = 18;   // Must be a board interrupt pin
 static const unsigned int   RIGHT_HALL_SENSOR_PIN                   = 19;   // Must be a board interrupt pin
 static const unsigned int   STEERING_LIMIT_SWITCHES_INTERRUPT_PIN   = 20;   // Must be a board interrupt pin
-static const unsigned int   BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN      = 21;   // Must be a board interrupt pin
-static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 24;
-static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 25;
-static const unsigned int   AUTONOMOUS_LED_PIN                      = 26;
-static const unsigned int   DEBUG_OUTPUT_1_LED_PIN                  = 27;
-static const unsigned int   DEBUG_OUTPUT_2_LED_PIN                  = 28;
-static const unsigned int   DEBUG_OUTPUT_3_LED_PIN                  = 29;
-static const unsigned int   DEBUG_OUTPUT_4_LED_PIN                  = 30;
+
+static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 22;
+static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 23;
+static const unsigned int   SWITCH_3_RESERVED                       = 24;
+static const unsigned int   SWITCH_4_RESERVED                       = 25;
+
+static const unsigned int   LEFT_HALL_SENSOR_LED_PIN                = 26;
+static const unsigned int   STEER_LIMIT_SWITCHES_LED_PIN            = 27;
+static const unsigned int   RIGHT_HALL_SENSOR_LED_PIN               = 28;
+static const unsigned int   BRAKE_MAGNET_RELAY_LED_PIN              = 29;
+static const unsigned int   AUTONOMOUS_READY_LED_PIN                = 30;
+static const unsigned int   EEPROM_RW_LED_PIN                       = 31;
+static const unsigned int   DEBUG_OUTPUT_7_LED_PIN                  = 32;
+static const unsigned int   DEBUG_OUTPUT_8_LED_PIN                  = 33;
+static const unsigned int   DEBUG_OUTPUT_9_LED_PIN                  = 34;
+static const unsigned int   AUTONOMOUS_EXECUTING_LED_PIN            = 35;
+
+static const unsigned int   DEBUG_OUTPUT_LEDS_START_PIN             = LEFT_HALL_SENSOR_LED_PIN;
+static const unsigned int   DEBUG_OUTPUT_LEDS_END_PIN               = AUTONOMOUS_EXECUTING_LED_PIN;
+
+static const unsigned int   H_BRIDGE_PIN_1                          = 50;
+static const unsigned int   H_BRIDGE_PIN_2                          = 51;
+static const unsigned int   H_BRIDGE_PIN_3                          = 52;
+static const unsigned int   H_BRIDGE_PIN_4                          = 53;
 
 // ANALOG PINS
 static const unsigned int   FRONT_AXLE_POTENTIOMETER_PIN            = 0;
 
-// Servos for speed controller test
+// SERVOS
 Servo steeringServo;
-Servo brakingServo;
 
+// FORWARD DECLARATIONS
+void ManualControl();
+void LeftHallIsr();
+void RightHallIsr();
+void SteeringLimitIsr();
+void BrakeLimitIsr();
 void SerialTest();
 void ControllerInputTest();
 void SpeedControllerTest();
-void SteeringLimitIsr();
-void BrakeLimitIsr();
+void BrakeRelayTest();
 void LimitSwitchTest();
 void SwitchesTest();
-void LeftHallIsr();
-void RightHallIsr();
+void LedTest();
 void PotentiometerTest();
 void HBridgeTest();
 void EepromTest();
@@ -56,54 +75,103 @@ void setup()
 
   // speed controllers
   steeringServo.attach(STEERING_SPEED_CONTROLLER_PIN);
-  brakingServo.attach(BRAKE_SPEED_CONTROLLER_PIN);
   
   // limit switch wiring test
   pinMode(STEERING_LEFT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
   pinMode(STEERING_RIGHT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
-  pinMode(BRAKE_RELEASE_LIMIT_SWITCH_PIN, INPUT_PULLUP);
-  pinMode(BRAKE_APPLY_LIMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(BRAKE_MAGNET_RELAY_PIN, OUTPUT);
 
-  // connect ISRs for limit switches
+  // connect ISR for limit switches
+  pinMode(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN), SteeringLimitIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN), BrakeLimitIsr, CHANGE);
 
   // switches test
   pinMode(AUTONOMOUS_SWITCH_PIN, INPUT_PULLUP);
-  pinMode(AUTONOMOUS_LED_PIN, OUTPUT);
   pinMode(SERIAL_TRANSMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(SWITCH_3_RESERVED, INPUT_PULLUP);
+  pinMode(SWITCH_4_RESERVED, INPUT_PULLUP);
 
   // connect ISRs for hall sensors
   attachInterrupt(digitalPinToInterrupt(LEFT_HALL_SENSOR_PIN), LeftHallIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(RIGHT_HALL_SENSOR_PIN), RightHallIsr, CHANGE);
 
   // debug outputs
-  pinMode(DEBUG_OUTPUT_1_LED_PIN, OUTPUT);
-  pinMode(DEBUG_OUTPUT_2_LED_PIN, OUTPUT);
-  pinMode(DEBUG_OUTPUT_3_LED_PIN, OUTPUT);
-  pinMode(DEBUG_OUTPUT_4_LED_PIN, OUTPUT);
+  for (unsigned int i = DEBUG_OUTPUT_LEDS_START_PIN; i <= DEBUG_OUTPUT_LEDS_END_PIN; i++)
+  {
+    pinMode(i, OUTPUT);
+    digitalWrite(i, LOW);
+  }
   
   // h-bridge outputs
-  pinMode(22, OUTPUT);
-  pinMode(23, OUTPUT);
-  pinMode(24, OUTPUT);
-  pinMode(25, OUTPUT);
+  pinMode(H_BRIDGE_PIN_1, OUTPUT);
+  pinMode(H_BRIDGE_PIN_2, OUTPUT);
+  pinMode(H_BRIDGE_PIN_3, OUTPUT);
+  pinMode(H_BRIDGE_PIN_4, OUTPUT);
   
   Serial.begin(115200);
   Serial2.begin(115200);
   Serial3.begin(115200);
+
+  Serial.println("Testbench");
 }
 
 void loop()
 {
-  SerialTest();
+  ManualControl();
+  //SerialTest();
   //ControllerInputTest();
   //SpeedControllerTest();
+  //BrakeRelayTest();
   //LimitSwitchTest();
   //SwitchesTest();
+  //LedTest();
   //PotentiometerTest();
   //HBridgeTest();
   //EepromTest();
+}
+
+void ManualControl()
+{
+  // Yaw input is roughly 1000 -> 2000, so it can be directly used in writeMicroseconds
+  int yawInput = pulseIn(YAW_INPUT_PIN, HIGH, 100000);
+  int brakeInput = pulseIn(BRAKE_INPUT_PIN, HIGH, 100000);
+  int left = digitalRead(STEERING_LEFT_LIMIT_SWITCH_PIN);
+  int right = digitalRead(STEERING_RIGHT_LIMIT_SWITCH_PIN);
+
+  if (brakeInput < 1350)
+  {
+    digitalWrite(BRAKE_MAGNET_RELAY_PIN, HIGH);
+    digitalWrite(BRAKE_MAGNET_RELAY_LED_PIN, HIGH);
+  }
+  else
+  {
+    digitalWrite(BRAKE_MAGNET_RELAY_PIN, LOW);
+    digitalWrite(BRAKE_MAGNET_RELAY_LED_PIN, LOW);
+  }
+
+  // Controller is off, just return
+  if (yawInput == 0)
+  {
+    return;
+  }
+
+  // Use some default minimum thresholds of 1425 and 1575
+  if ((yawInput < 1425) && (left != 1))
+  {
+    //Serial.println("L");
+    steeringServo.writeMicroseconds(yawInput);
+  }
+  else if ((yawInput > 1575) && (right != 1))
+  {
+    //Serial.println("R");
+    steeringServo.writeMicroseconds(yawInput);
+  }
+  else
+  {
+    // Off
+    //Serial.println("OFF");
+    steeringServo.writeMicroseconds(1500);
+  }
 }
 
 void LeftHallIsr()
@@ -112,7 +180,7 @@ void LeftHallIsr()
   int interruptEdge = digitalRead(LEFT_HALL_SENSOR_PIN);
   
   // debug LED on
-  digitalWrite(DEBUG_OUTPUT_1_LED_PIN, interruptEdge);
+  digitalWrite(LEFT_HALL_SENSOR_LED_PIN, !interruptEdge);
 }
 
 void RightHallIsr()
@@ -121,21 +189,14 @@ void RightHallIsr()
   int interruptEdge = digitalRead(RIGHT_HALL_SENSOR_PIN);
   
   // debug LED on
-  digitalWrite(DEBUG_OUTPUT_2_LED_PIN, interruptEdge);
+  digitalWrite(RIGHT_HALL_SENSOR_LED_PIN, !interruptEdge);
 }
 
 void SteeringLimitIsr()
 {
   // reverse the LED logic since this is falling edge
   int ledState = (digitalRead(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN) == 1) ? LOW : HIGH;
-  digitalWrite(DEBUG_OUTPUT_3_LED_PIN, ledState);
-}
-
-void BrakeLimitIsr()
-{
-  // reverse the LED logic since this is falling edge
-  int ledState = (digitalRead(BRAKE_LIMIT_SWITCHES_INTERRUPT_PIN) == 1) ? LOW : HIGH;
-  digitalWrite(DEBUG_OUTPUT_4_LED_PIN, ledState);
+  digitalWrite(STEER_LIMIT_SWITCHES_LED_PIN, ledState);
 }
 
 void SerialTest()
@@ -143,27 +204,40 @@ void SerialTest()
   struct SerialData
   {
     int32_t steerMotorSpeed;
-    int32_t brakeRelease;
-    int32_t brakeApply;
+    int32_t brakeApplied;
     int32_t leftHallVal;
     int32_t rightHallVal;
     int32_t leftHallCount;
     int32_t rightHallCount;
     int32_t leftLimit;
     int32_t rightLimit;
-    int32_t brakeReleaseLimit;
-    int32_t brakeApplyLimit;
     int32_t potentiometer;
     int32_t inAuto;
   };
   
-  //static SerialData serialData = {95,1,12345,340,-7,2,-18,3,0,4,0,-58,987};
-  //static SerialData serialData = {64,65,66,67,68,69,70,71,72,73,74,75,76};
-  //static SerialData serialData = {255,0,255,0,255,0,255,0,255,0,255,0,255};
-  static SerialData serialData = {0,0,1,0,1,0,0,1,0,1,0,340,0};
+  //static SerialData serialData = {95,1,12345,-7,2,-18,3,0,-58,987};
+  //static SerialData serialData = {64,65,66,67,68,69,70,71,72,73};
+  //static SerialData serialData = {255,0,255,0,255,0,255,0,255,0};
+  static SerialData serialData = {0,0,0,1,3,3,1,0,340,0};
   //byte * pData = reinterpret_cast<byte*>(&serialData);
-  while (Serial3.readString() != "pi")
+
+  if (Serial3.available())
   {
+    String s = Serial3.readString();
+    if (s == "pi")
+    {
+      Serial.println("Got pi.");
+    }
+    else
+    {
+      Serial.print("Not pi: ");
+      Serial.println(s);
+      return;
+    }
+  }
+  else
+  {
+    return;
   }
   
   static int x = 0;
@@ -172,16 +246,13 @@ void SerialTest()
 
   Serial3.println("SBDC");
   Serial3.println(serialData.steerMotorSpeed);
-  Serial3.println(serialData.brakeRelease);
-  Serial3.println(serialData.brakeApply);
+  Serial3.println(serialData.brakeApplied);
   Serial3.println(serialData.leftHallVal);
   Serial3.println(serialData.rightHallVal);
   Serial3.println(serialData.leftHallCount);
   Serial3.println(serialData.rightHallCount);
   Serial3.println(serialData.leftLimit);
   Serial3.println(serialData.rightLimit);
-  Serial3.println(serialData.brakeReleaseLimit);
-  Serial3.println(serialData.brakeApplyLimit);
   Serial3.println(serialData.potentiometer);
   Serial3.println(serialData.inAuto);
 
@@ -202,16 +273,12 @@ void SerialTest()
     }
   }
 
-  serialData.brakeRelease = !static_cast<bool>(serialData.brakeRelease);
-  serialData.brakeApply = !static_cast<bool>(serialData.brakeApply);
+  serialData.brakeApplied = !static_cast<bool>(serialData.brakeApplied);
   serialData.leftHallVal = !static_cast<bool>(serialData.leftHallVal);
   serialData.rightHallVal = !static_cast<bool>(serialData.rightHallVal);
 
   serialData.leftHallCount++;
   serialData.rightHallCount++;
-
-  serialData.brakeReleaseLimit = !static_cast<bool>(serialData.brakeReleaseLimit);
-  serialData.brakeApplyLimit = !static_cast<bool>(serialData.brakeApplyLimit);
 
   switch (serialData.potentiometer)
   {
@@ -247,40 +314,17 @@ void SerialTest()
   */
 
   // Display any data that Serial3 receives
-  /*
-  while (Serial3.available())
+  while (Serial2.available())
   {
-    Serial.print(Serial3.read());
+    Serial.print(Serial2.read());
   }
   
   Serial.println();
-  delay(3000);
-  */
-
-  /*
-  // Old test
-  if (Serial)
-  {
-    digitalWrite(DEBUG_OUTPUT_1_LED_PIN, HIGH);
-  }
-  else
-  {
-    digitalWrite(DEBUG_OUTPUT_2_LED_PIN, HIGH);
-  }
-  */
+  //delay(1000);
 }
 
 void ControllerInputTest()
 {
-  int in3 = pulseIn(3, HIGH, 100000);
-  int in4 = pulseIn(4, HIGH, 100000);
-  int in5 = pulseIn(5, HIGH, 100000);
-  Serial.println(in3);
-  Serial.println(in4);
-  Serial.println(in5);
-  Serial.println();
-  delay(2000);
-  return;
   int yawInput = pulseIn(YAW_INPUT_PIN, HIGH, 100000);
   int recalibrateInput = pulseIn(RECALIBRATE_INPUT_PIN, HIGH, 100000);
   int brakeInput = pulseIn(BRAKE_INPUT_PIN, HIGH, 100000);
@@ -304,49 +348,9 @@ void SpeedControllerTest()
   // 2000us = full forward
   const int PWM_SCALE_FACTOR = 5;
   const int PWM_BASE_VALUE = 1500;
-
+  
 /*
-  for (int i = 700; i < 2000; i++)
-  {
-    steeringServo.writeMicroseconds(i);
-    delay(10);
-    if ((i % 100) == 0)
-    {
-      Serial.println(i);
-    }
-  }
-  steeringServo.writeMicroseconds(1350);
-  delay(1000);
-  return;
-*/
-/*
-  delay(3000);
-  steeringServo.writeMicroseconds(2000);
-  delay(3000);
-  steeringServo.writeMicroseconds(1500);
-  delay(1000);
-  steeringServo.writeMicroseconds(1000);
-  delay(1000);
-  steeringServo.writeMicroseconds(1500);
-  delay(1000);
-  return;
-*/
-/*
-  static int value = 0;
-  if (Serial.available())
-  {
-    value = Serial.parseInt();
-  }
-  if (value != 0)
-  {
-    Serial.print("Writing: ");
-    Serial.println(value);
-    steeringServo.writeMicroseconds(value);
-  }
-  delay(1000);
-  return;
-*/
-  static bool bStart = false;
+  bool bStart = false;
   while (!bStart)
   {
     int value = 0;
@@ -363,6 +367,7 @@ void SpeedControllerTest()
       bStart = true;
     }
   }
+*/
 
   Serial.println(1750);
   steeringServo.writeMicroseconds(1750);
@@ -383,64 +388,86 @@ void SpeedControllerTest()
   steeringServo.writeMicroseconds(1500);
   delay(1500);
   return;
-  
+
+  // ramp up from neutral to full forward
   for (int value = 0; value <= 100; value++)
   {
     steeringServo.writeMicroseconds((value * PWM_SCALE_FACTOR) + PWM_BASE_VALUE);
     delay(100);
   }
+
+  // motor off
   steeringServo.writeMicroseconds(1500);
   delay(1500);
+
+  // ramp down from neutral to full reverse
   for (int value = 0; value >= -100; value--)
   {
     steeringServo.writeMicroseconds((value * PWM_SCALE_FACTOR) + PWM_BASE_VALUE);
     delay(100);
   }
   return;
-      
-  // ramp up from full reverse to full forward
-  for (int value = -20; value <= 20; value++)
-  {
-    steeringServo.writeMicroseconds((value * PWM_SCALE_FACTOR) + PWM_BASE_VALUE);
-    brakingServo.writeMicroseconds((value * PWM_SCALE_FACTOR) + PWM_BASE_VALUE);
-    delay(100);
-  }
+}
 
-  // ramp down from full forward to full reverse
-  for (int value = 20; value >= -20; value--)
-  {
-    steeringServo.writeMicroseconds((value * PWM_SCALE_FACTOR) + PWM_BASE_VALUE);
-    brakingServo.writeMicroseconds((value * PWM_SCALE_FACTOR) + PWM_BASE_VALUE);
-    delay(100);
-  }
+void BrakeRelayTest()
+{
+  Serial.println("Relay on.");
+  digitalWrite(BRAKE_MAGNET_RELAY_PIN, HIGH);
+  digitalWrite(BRAKE_MAGNET_RELAY_LED_PIN, HIGH);
+  delay(3000);
+  Serial.println("Relay off.");
+  digitalWrite(BRAKE_MAGNET_RELAY_PIN, LOW);
+  digitalWrite(BRAKE_MAGNET_RELAY_LED_PIN, LOW);
+  delay(3000);
 }
 
 void LimitSwitchTest()
 {
   int left = digitalRead(STEERING_LEFT_LIMIT_SWITCH_PIN);
   int right = digitalRead(STEERING_RIGHT_LIMIT_SWITCH_PIN);
-  int brake1 = digitalRead(BRAKE_RELEASE_LIMIT_SWITCH_PIN);
-  int brake2 = digitalRead(BRAKE_APPLY_LIMIT_SWITCH_PIN);
   Serial.print(left);
   Serial.print(", ");
-  Serial.print(right);
-  Serial.print(", ");
-  Serial.print(brake1);
-  Serial.print(", ");
-  Serial.println(brake2);
+  Serial.println(right);
   delay(500);
 }
 
 void SwitchesTest()
 {
   int autoSwitch = digitalRead(AUTONOMOUS_SWITCH_PIN);
-  digitalWrite(AUTONOMOUS_LED_PIN, autoSwitch);
+  digitalWrite(AUTONOMOUS_READY_LED_PIN, autoSwitch);
   Serial.print("Auto switch: ");
   Serial.println(autoSwitch);
   int serialTransmitSwitch = digitalRead(SERIAL_TRANSMIT_SWITCH_PIN);
+  digitalWrite(EEPROM_RW_LED_PIN, serialTransmitSwitch);
   Serial.print("Serial switch: ");
   Serial.println(serialTransmitSwitch);
+  int switch3 = digitalRead(SWITCH_3_RESERVED);
+  digitalWrite(LEFT_HALL_SENSOR_LED_PIN, switch3);
+  Serial.print("Switch 3: ");
+  Serial.println(switch3);
+  int switch4 = digitalRead(SWITCH_4_RESERVED);
+  digitalWrite(RIGHT_HALL_SENSOR_LED_PIN, switch4);
+  Serial.print("Switch 4: ");
+  Serial.println(switch4);
+  Serial.println();
   delay(500);
+}
+
+void LedTest()
+{
+  for (unsigned int i = DEBUG_OUTPUT_LEDS_START_PIN; i <= DEBUG_OUTPUT_LEDS_END_PIN; i++)
+  {
+    // First turn them on
+    digitalWrite(i, HIGH);
+    delay(500);
+  }
+
+  for (unsigned int i = DEBUG_OUTPUT_LEDS_START_PIN; i <= DEBUG_OUTPUT_LEDS_END_PIN; i++)
+  {
+    // Then turn them off
+    digitalWrite(i, LOW);
+    delay(500);
+  }
 }
 
 void PotentiometerTest()
@@ -455,20 +482,22 @@ void HBridgeTest()
 {
   // put your main code here, to run repeatedly:
 
+  /*
   while (true)
   {
-    //analogWrite(22, 255);
-    analogWrite(23, 255);
-    //analogWrite(24, 255);
-    //analogWrite(25, 255);
+    analogWrite(H_BRIDGE_PIN_1, 255);
+    analogWrite(H_BRIDGE_PIN_2, 255);
+    analogWrite(H_BRIDGE_PIN_3, 255);
+    analogWrite(H_BRIDGE_PIN_4, 255);
   }
+  */
   
   for (int i = 0; i <= 255; i++)
   {
-    //analogWrite(22, i);
-    analogWrite(23, i);
-    //analogWrite(24, i);
-    //analogWrite(25, i);
+    //analogWrite(H_BRIDGE_PIN_1, i);
+    analogWrite(H_BRIDGE_PIN_2, i);
+    //analogWrite(H_BRIDGE_PIN_3, i);
+    //analogWrite(H_BRIDGE_PIN_4, i);
     delay(100);
   }
 
@@ -476,10 +505,10 @@ void HBridgeTest()
 
   for (int i = 255; i >= 0; i--)
   {
-    //analogWrite(22, i);
-    analogWrite(23, i);
-    //analogWrite(24, i);
-    //analogWrite(25, i);
+    //analogWrite(H_BRIDGE_PIN_1, i);
+    analogWrite(H_BRIDGE_PIN_2, i);
+    //analogWrite(H_BRIDGE_PIN_3, i);
+    //analogWrite(H_BRIDGE_PIN_4, i);
     delay(100);
   }
 }
