@@ -366,9 +366,9 @@ private:
   //////////////////////////////////////////////////////////////////////////////
   
   // AUTONOMOUS
-  static const int            AUTO_CENTERING_CALIBRATION_LEFT_SPEED   = -30;
-  static const int            AUTO_CENTERING_CALIBRATION_RIGHT_SPEED  =  30;
-  static const int            AUTO_CENTERING_CALIBRATION_CENTER_SPEED = -20;
+  static const int            AUTO_CENTERING_CALIBRATION_LEFT_SPEED   = -50;
+  static const int            AUTO_CENTERING_CALIBRATION_RIGHT_SPEED  =  50;
+  static const int            AUTO_CENTERING_CALIBRATION_CENTER_SPEED = -50;
   static const int            AUTO_CENTERING_CALIBRATION_DELAY_MS     =  2000;
   static const int            AUTO_TURN_LEFT_SPEED                    = -80;
   static const int            AUTO_TURN_RIGHT_SPEED                   =  80;
@@ -435,7 +435,6 @@ private:
   static const int            BRAKE_INPUT_CHANNEL                     = 5;
   static const int            MASTER_ENABLE_INPUT_CHANNEL             = 6;
   static const int            NUM_MAGNETS_PER_WHEEL                   = 12;
-  static const int            POTENTIOMETER_READ_SPACING_DELAY_MS     = 100;
   static const int            POTENTIOMETER_MAX_JITTER_VALUE          = 5;
   static const int            POTENTIOMETER_MAX_VALUE                 = 1024;
   static const int            ENCODER_MAX_VALUE                       = 4096;
