@@ -267,6 +267,7 @@ private:
   
   // DEBUG ASSIST
   void ConfigureDebugPins();
+  void BlinkStatusLight();
   void DisplayValues(bool bShowImmediately = false);
   void ReadSerialInput();
   static void ProcessAssert();
@@ -354,6 +355,8 @@ private:
   
   // MISC
   bool m_bCalibrationComplete;
+  bool m_bStatusLedState;
+  unsigned long m_StatusLedTimeStampMs;
   
   // SINGLETON INSTANCE
   static SoapBoxDerbyCar * m_pSoapBoxDerbyCar;
@@ -400,20 +403,25 @@ private:
   static const unsigned int   RIGHT_HALL_SENSOR_PIN                   = 19;   // Must be a board interrupt pin
   static const unsigned int   STEERING_LIMIT_SWITCHES_INTERRUPT_PIN   = 20;   // Must be a board interrupt pin
   static const unsigned int   PIN_21_INTERRUPT_RESERVED               = 21;   // Must be a board interrupt pin
-  static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 22;
-  static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 23;
-  static const unsigned int   SWITCH_3_RESERVED                       = 24;
-  static const unsigned int   SWITCH_4_RESERVED                       = 25;
+  static const unsigned int   PIN_22_RESERVED                         = 22;
+  static const unsigned int   PIN_23_RESERVED                         = 23;
+  static const unsigned int   PIN_24_RESERVED                         = 24;
+  static const unsigned int   PIN_25_RESERVED                         = 25;
   static const unsigned int   LEFT_HALL_SENSOR_LED_PIN                = 26;
   static const unsigned int   STEER_LIMIT_SWITCHES_LED_PIN            = 27;
   static const unsigned int   RIGHT_HALL_SENSOR_LED_PIN               = 28;
   static const unsigned int   BRAKE_MAGNET_RELAY_LED_PIN              = 29;
   static const unsigned int   AUTONOMOUS_READY_LED_PIN                = 30;
-  static const unsigned int   EEPROM_RW_LED_PIN                       = 31;
-  static const unsigned int   DEBUG_OUTPUT_7_LED_PIN                  = 32;
-  static const unsigned int   DEBUG_OUTPUT_8_LED_PIN                  = 33;
-  static const unsigned int   DEBUG_OUTPUT_9_LED_PIN                  = 34;
+  static const unsigned int   STATUS_LED_PIN                          = 31;
+  static const unsigned int   EEPROM_RW_LED_PIN                       = 32;
+  static const unsigned int   STEERING_CALIBRATION_LED_PIN            = 33;
+  static const unsigned int   INITIALIZING_LED_PIN                    = 34;
+  static const unsigned int   MANUAL_CONTROL_LED_PIN                  = 34;
   static const unsigned int   AUTONOMOUS_EXECUTING_LED_PIN            = 35;
+  static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 44;
+  static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 45;
+  static const unsigned int   SWITCH_3_RESERVED                       = 46;
+  static const unsigned int   SWITCH_4_RESERVED                       = 47;
   static const unsigned int   STEERING_ENCODER_PIN                    = 51;
   static const unsigned int   SONAR_TRIGGER_PIN                       = 52;
   static const unsigned int   SONAR_ECHO_PIN                          = 53;
@@ -450,6 +458,7 @@ private:
   static const int            OFF                                     = 0;
   static const int            ON                                      = 100;
   static const unsigned int   TENTH_OF_A_SECOND_DELAY_MS              = 100;
+  static const unsigned long  STATUS_LED_BLINK_DELAY_MS               = 500;
   static const unsigned long  SERIAL_DATA_TRANSMIT_INTERVAL_MS        = 1000;
   static const unsigned long  PULSE_IN_TIMEOUT_US                     = 50000;
   static constexpr double     INCHES_PER_FOOT                         = 12.0;

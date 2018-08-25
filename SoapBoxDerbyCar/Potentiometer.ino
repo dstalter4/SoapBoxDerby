@@ -52,6 +52,12 @@ void SoapBoxDerbyCar::CalibrateSteeringPotentiometer()
   Serial.print(F("Calibration attempt #"));
   Serial.println(++calibrationAttempt);
 
+  // Just in case it was on, turn the status light off during calibration
+  digitalWrite(STATUS_LED_PIN, LOW);
+  
+  // Give a visual indication calibration is in progress
+  digitalWrite(STEERING_CALIBRATION_LED_PIN, HIGH);
+
   // A recalibration can be triggered, so reset the status variable
   m_bCalibrationComplete = false;
 
@@ -126,6 +132,9 @@ void SoapBoxDerbyCar::CalibrateSteeringPotentiometer()
   
   m_LastGoodPotValue = m_FrontAxlePotCenterValue;
   m_bCalibrationComplete = true;
+
+  // Give a visual indication calibration is complete
+  digitalWrite(STEERING_CALIBRATION_LED_PIN, LOW);
   
   Serial.print(F("Left calibration pot value: "));
   Serial.println(m_FrontAxlePotMaxLeftValue);

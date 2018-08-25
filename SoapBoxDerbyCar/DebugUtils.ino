@@ -47,9 +47,14 @@ void SoapBoxDerbyCar::ConfigureDebugPins()
   // Loop over all the debug LEDs present
   for (unsigned int i = DEBUG_OUTPUT_LEDS_START_PIN; i <= DEBUG_OUTPUT_LEDS_END_PIN; i++)
   {
-    // Configure the pin as an output and start with it off
+    // Configure the pin as an output
     pinMode(i, OUTPUT);
-    digitalWrite(i, LOW);
+
+    // Start with the LED off, except the initializing one which was already turned on
+    if (i != INITIALIZING_LED_PIN)
+    {
+      digitalWrite(i, LOW);
+    }
   }
 }
 
@@ -221,6 +226,22 @@ void SoapBoxDerbyCar::ReadSerialInput()
         break;
       }
     }
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Method: BlinkStatusLight
+///
+/// Details:  Blinks an LED to indicate the program is still running.
+////////////////////////////////////////////////////////////////////////////////
+void SoapBoxDerbyCar::BlinkStatusLight()
+{
+  if (CalcDeltaTimeMs(m_StatusLedTimeStampMs) > STATUS_LED_BLINK_DELAY_MS)
+  {
+    digitalWrite(STATUS_LED_PIN, static_cast<int>(m_bStatusLedState));
+    m_bStatusLedState = !m_bStatusLedState;
+    m_StatusLedTimeStampMs = GetTimeStampMs();
   }
 }
 

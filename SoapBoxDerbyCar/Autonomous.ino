@@ -69,6 +69,9 @@ void SoapBoxDerbyCar::AutonomousRoutine()
   // Autonomous truly starts when the wheels start moving
   while ((m_LeftHallCount < AUTO_HALL_SENSOR_LAUNCH_COUNT) && (m_RightHallCount < AUTO_HALL_SENSOR_LAUNCH_COUNT))
   {
+    // Update the status light
+    BlinkStatusLight();
+    
     // Watch for autonomous to be cancelled
     if (!IsAutonomousSwitchSet())
     {
@@ -89,6 +92,9 @@ void SoapBoxDerbyCar::AutonomousRoutine()
   unsigned long autonomousStartTimeMs = GetTimeStampMs();
   while (CalcDeltaTimeMs(autonomousStartTimeMs) < AUTO_MAX_LENGTH_MS)
   {
+    // Update the status light
+    BlinkStatusLight();
+    
     // First make sure the switch still says autonomous
     if (!IsAutonomousSwitchSet())
     {
@@ -161,6 +167,8 @@ void SoapBoxDerbyCar::ExitAutonomous()
   // switch is flipped back to manual control
   while (IsAutonomousSwitchSet())
   {
+    // Update the status light
+    BlinkStatusLight();
   }
 
   Serial.println(F("Autonomous: Entering manual control from auto."));
