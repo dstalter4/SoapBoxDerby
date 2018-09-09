@@ -91,8 +91,6 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   m_bBrakeApplied(false),
   m_SteeringEncoderValue(0),
   m_SteeringEncoderMultiplier(0),
-  m_LeftHallSensorValue(0),
-  m_RightHallSensorValue(0),
   m_LeftHallCount(0),
   m_RightHallCount(0),
   m_LeftWheelDistanceInches(0.0),

@@ -146,10 +146,6 @@ void SoapBoxDerbyCar::DisplayValues(bool bShowImmediately)
     Serial.print(F("Steering encoder multiplier: "));
     Serial.println(m_SteeringEncoderMultiplier);
     
-    Serial.print(F("Left hall sensor: "));
-    Serial.println(m_LeftHallSensorValue);
-    Serial.print(F("Right hall sensor: "));
-    Serial.println(m_RightHallSensorValue);
     Serial.print(F("Left hall count: "));
     Serial.println(m_LeftHallCount);
     Serial.print(F("Right hall count: "));

@@ -222,7 +222,6 @@ private:
   inline void IncrementLeftHallSensorCount() { m_LeftWheelDistanceInches = ++m_LeftHallCount * WHEEL_LENGTH_PER_MAGNET_INCHES; }
   inline void IncrementRightHallSensorCount() { m_RightWheelDistanceInches = ++m_RightHallCount * WHEEL_LENGTH_PER_MAGNET_INCHES; }
   void ResetHallSensorCounts();
-  void ReadHallSensors();
 
   // LIMIT SWITCHES
   static void SteeringLimitSwitchInterruptHandler();
@@ -301,8 +300,6 @@ private:
   
   // HALL EFFECT
   // Some are volatile because they are used in an interrupt handler.
-  int m_LeftHallSensorValue;
-  int m_RightHallSensorValue;
   volatile unsigned int m_LeftHallCount;
   volatile unsigned int m_RightHallCount;
   double m_LeftWheelDistanceInches;
