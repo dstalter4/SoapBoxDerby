@@ -17,11 +17,6 @@ static const unsigned int   LEFT_HALL_SENSOR_PIN                    = 18;   // M
 static const unsigned int   RIGHT_HALL_SENSOR_PIN                   = 19;   // Must be a board interrupt pin
 static const unsigned int   STEERING_LIMIT_SWITCHES_INTERRUPT_PIN   = 20;   // Must be a board interrupt pin
 
-static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 22;
-static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 23;
-static const unsigned int   SWITCH_3_RESERVED                       = 24;
-static const unsigned int   SWITCH_4_RESERVED                       = 25;
-
 static const unsigned int   LEFT_HALL_SENSOR_LED_PIN                = 26;
 static const unsigned int   STEER_LIMIT_SWITCHES_LED_PIN            = 27;
 static const unsigned int   RIGHT_HALL_SENSOR_LED_PIN               = 28;
@@ -35,6 +30,11 @@ static const unsigned int   AUTONOMOUS_EXECUTING_LED_PIN            = 35;
 
 static const unsigned int   DEBUG_OUTPUT_LEDS_START_PIN             = LEFT_HALL_SENSOR_LED_PIN;
 static const unsigned int   DEBUG_OUTPUT_LEDS_END_PIN               = AUTONOMOUS_EXECUTING_LED_PIN;
+
+static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 44;
+static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 45;
+static const unsigned int   SWITCH_3_RESERVED                       = 46;
+static const unsigned int   SWITCH_4_RESERVED                       = 47;
 
 static const unsigned int   H_BRIDGE_PIN_1                          = 50;
 static const unsigned int   H_BRIDGE_PIN_2                          = 51;
@@ -85,12 +85,6 @@ void setup()
   pinMode(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN), SteeringLimitIsr, CHANGE);
 
-  // switches test
-  pinMode(AUTONOMOUS_SWITCH_PIN, INPUT_PULLUP);
-  pinMode(SERIAL_TRANSMIT_SWITCH_PIN, INPUT_PULLUP);
-  pinMode(SWITCH_3_RESERVED, INPUT_PULLUP);
-  pinMode(SWITCH_4_RESERVED, INPUT_PULLUP);
-
   // connect ISRs for hall sensors
   attachInterrupt(digitalPinToInterrupt(LEFT_HALL_SENSOR_PIN), LeftHallIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(RIGHT_HALL_SENSOR_PIN), RightHallIsr, CHANGE);
@@ -101,6 +95,12 @@ void setup()
     pinMode(i, OUTPUT);
     digitalWrite(i, LOW);
   }
+
+  // switches test
+  pinMode(AUTONOMOUS_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(SERIAL_TRANSMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(SWITCH_3_RESERVED, INPUT_PULLUP);
+  pinMode(SWITCH_4_RESERVED, INPUT_PULLUP);
   
   // h-bridge outputs
   pinMode(H_BRIDGE_PIN_1, OUTPUT);

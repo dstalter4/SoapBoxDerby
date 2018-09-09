@@ -111,11 +111,30 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   inline static SoapBoxDerbyCar * GetSingletonInstance()
   {
-    // @todo: Figure out why this is occasionally tripping.
     // Make sure the instance has been created
-    //ASSERT(m_pSoapBoxDerbyCar != nullptr);
+    ASSERT(m_pSoapBoxDerbyCar != nullptr);
     
     return m_pSoapBoxDerbyCar;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  /// Method: AttachInterruptRoutines
+  ///
+  /// Details:  Attaches the interrupt routines for the soap box derby car.
+  /// Note:     This is a separate function because some ISRs (those for the
+  ///           Hall effect sensors) need the singleton to be created in order
+  ///           to not lock up the board.  It must be ensured that this function
+  ///           is not called until after CreateSingletonInstance().
+  //////////////////////////////////////////////////////////////////////////////
+  inline static void AttachInterruptRoutines()
+  {
+    // Make sure the instance is created
+    ASSERT(m_pSoapBoxDerbyCar != nullptr);
+
+    // Attach the ISRs
+    attachInterrupt(digitalPinToInterrupt(LEFT_HALL_SENSOR_PIN), LeftHallSensorInterruptHandler, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(RIGHT_HALL_SENSOR_PIN), RightHallSensorInterruptHandler, CHANGE);
+    //attachInterrupt(digitalPinToInterrupt(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN), SteeringLimitSwitchInterruptHandler, CHANGE);
   }
 
 private:
@@ -222,7 +241,6 @@ private:
   inline void IncrementLeftHallSensorCount() { m_LeftWheelDistanceInches = ++m_LeftHallCount * WHEEL_LENGTH_PER_MAGNET_INCHES; }
   inline void IncrementRightHallSensorCount() { m_RightWheelDistanceInches = ++m_RightHallCount * WHEEL_LENGTH_PER_MAGNET_INCHES; }
   void ResetHallSensorCounts();
-  void ReadHallSensors();
 
   // LIMIT SWITCHES
   static void SteeringLimitSwitchInterruptHandler();
@@ -267,6 +285,7 @@ private:
   
   // DEBUG ASSIST
   void ConfigureDebugPins();
+  void BlinkStatusLight();
   void DisplayValues(bool bShowImmediately = false);
   void ReadSerialInput();
   static void ProcessAssert();
@@ -300,8 +319,6 @@ private:
   
   // HALL EFFECT
   // Some are volatile because they are used in an interrupt handler.
-  int m_LeftHallSensorValue;
-  int m_RightHallSensorValue;
   volatile unsigned int m_LeftHallCount;
   volatile unsigned int m_RightHallCount;
   double m_LeftWheelDistanceInches;
@@ -354,6 +371,8 @@ private:
   
   // MISC
   bool m_bCalibrationComplete;
+  bool m_bStatusLedState;
+  unsigned long m_StatusLedTimeStampMs;
   
   // SINGLETON INSTANCE
   static SoapBoxDerbyCar * m_pSoapBoxDerbyCar;
@@ -380,6 +399,8 @@ private:
   // Serial ports (Rx/Tx) at pins 0/1 (default), 19/18 (Serial1), 17/16 (Serial2), 15/14 (Serial3)
   
   // DIGITAL PINS
+  static const unsigned int   SERIAL_RX_RESERVED                      = 0;
+  static const unsigned int   SERIAL_TX_RESERVED                      = 1;
   static const unsigned int   CH1_INPUT_PIN                           = 2;    // Derby car yaw control
   static const unsigned int   CH2_INPUT_PIN                           = 3;
   static const unsigned int   CH3_INPUT_PIN                           = 4;
@@ -400,26 +421,43 @@ private:
   static const unsigned int   RIGHT_HALL_SENSOR_PIN                   = 19;   // Must be a board interrupt pin
   static const unsigned int   STEERING_LIMIT_SWITCHES_INTERRUPT_PIN   = 20;   // Must be a board interrupt pin
   static const unsigned int   PIN_21_INTERRUPT_RESERVED               = 21;   // Must be a board interrupt pin
-  static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 22;
-  static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 23;
-  static const unsigned int   SWITCH_3_RESERVED                       = 24;
-  static const unsigned int   SWITCH_4_RESERVED                       = 25;
+  static const unsigned int   PIN_22_RESERVED                         = 22;
+  static const unsigned int   PIN_23_RESERVED                         = 23;
+  static const unsigned int   PIN_24_RESERVED                         = 24;
+  static const unsigned int   PIN_25_RESERVED                         = 25;
   static const unsigned int   LEFT_HALL_SENSOR_LED_PIN                = 26;
   static const unsigned int   STEER_LIMIT_SWITCHES_LED_PIN            = 27;
   static const unsigned int   RIGHT_HALL_SENSOR_LED_PIN               = 28;
   static const unsigned int   BRAKE_MAGNET_RELAY_LED_PIN              = 29;
   static const unsigned int   AUTONOMOUS_READY_LED_PIN                = 30;
-  static const unsigned int   EEPROM_RW_LED_PIN                       = 31;
-  static const unsigned int   DEBUG_OUTPUT_7_LED_PIN                  = 32;
-  static const unsigned int   DEBUG_OUTPUT_8_LED_PIN                  = 33;
-  static const unsigned int   DEBUG_OUTPUT_9_LED_PIN                  = 34;
+  static const unsigned int   STATUS_LED_PIN                          = 31;
+  static const unsigned int   EEPROM_RW_LED_PIN                       = 32;
+  static const unsigned int   STEERING_CALIBRATION_LED_PIN            = 33;
+  static const unsigned int   INITIALIZING_LED_PIN                    = 34;
+  static const unsigned int   MANUAL_CONTROL_LED_PIN                  = 34;
   static const unsigned int   AUTONOMOUS_EXECUTING_LED_PIN            = 35;
+  static const unsigned int   PIN_36_RESERVED                         = 36;
+  static const unsigned int   PIN_37_RESERVED                         = 37;
+  static const unsigned int   PIN_38_RESERVED                         = 38;
+  static const unsigned int   PIN_39_RESERVED                         = 39;
+  static const unsigned int   PIN_40_RESERVED                         = 40;
+  static const unsigned int   PIN_41_RESERVED                         = 41;
+  static const unsigned int   PIN_42_RESERVED                         = 42;
+  static const unsigned int   PIN_43_RESERVED                         = 43;
+  static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 44;
+  static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 45;
+  static const unsigned int   SWITCH_3_RESERVED                       = 46;
+  static const unsigned int   SWITCH_4_RESERVED                       = 47;
+  static const unsigned int   PIN_48_RESERVED                         = 48;
+  static const unsigned int   PIN_49_RESERVED                         = 49;
+  static const unsigned int   PIN_50_RESERVED                         = 50;
   static const unsigned int   STEERING_ENCODER_PIN                    = 51;
   static const unsigned int   SONAR_TRIGGER_PIN                       = 52;
   static const unsigned int   SONAR_ECHO_PIN                          = 53;
 
   static const unsigned int   DEBUG_OUTPUT_LEDS_START_PIN             = LEFT_HALL_SENSOR_LED_PIN;
   static const unsigned int   DEBUG_OUTPUT_LEDS_END_PIN               = AUTONOMOUS_EXECUTING_LED_PIN;
+  static const unsigned int   UNUSED_PINS[];
   
   // ANALOG PINS
   static const unsigned int   FRONT_AXLE_POTENTIOMETER_PIN            = 0;
@@ -450,6 +488,7 @@ private:
   static const int            OFF                                     = 0;
   static const int            ON                                      = 100;
   static const unsigned int   TENTH_OF_A_SECOND_DELAY_MS              = 100;
+  static const unsigned long  STATUS_LED_BLINK_DELAY_MS               = 500;
   static const unsigned long  SERIAL_DATA_TRANSMIT_INTERVAL_MS        = 1000;
   static const unsigned long  PULSE_IN_TIMEOUT_US                     = 50000;
   static constexpr double     INCHES_PER_FOOT                         = 12.0;

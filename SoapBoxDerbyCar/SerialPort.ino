@@ -112,8 +112,6 @@ void SoapBoxDerbyCar::SendCarSerialData()
   int transmitDataIndex = 0;
   serialData[transmitDataIndex++] = m_CurrentSteeringValue;
   serialData[transmitDataIndex++] = m_bBrakeApplied;
-  serialData[transmitDataIndex++] = m_LeftHallSensorValue;
-  serialData[transmitDataIndex++] = m_RightHallSensorValue;
   serialData[transmitDataIndex++] = m_LeftHallCount;
   serialData[transmitDataIndex++] = m_RightHallCount;
   serialData[transmitDataIndex++] = m_LeftSteeringLimitSwitchValue;

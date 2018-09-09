@@ -53,6 +53,9 @@ void setup()
 {  
   // Create the soap box derby car singleton
   SoapBoxDerbyCar::CreateSingletonInstance();
+
+  // Attach the interrupts here because they will use the singleton instance
+  SoapBoxDerbyCar::AttachInterruptRoutines();
 }
 
 
@@ -91,8 +94,6 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   m_bBrakeApplied(false),
   m_SteeringEncoderValue(0),
   m_SteeringEncoderMultiplier(0),
-  m_LeftHallSensorValue(0),
-  m_RightHallSensorValue(0),
   m_LeftHallCount(0),
   m_RightHallCount(0),
   m_LeftWheelDistanceInches(0.0),
@@ -106,8 +107,13 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
   m_LastGoodPotValue(0),
   m_SonarDistanceInches(0),
   m_pDataTransmitSerialPort(&Serial3),
-  m_bCalibrationComplete(false)
+  m_bCalibrationComplete(false),
+  m_bStatusLedState(false),
+  m_StatusLedTimeStampMs(0UL)
 {
+  // Give a visual indication that initialization is in progress
+  digitalWrite(INITIALIZING_LED_PIN, HIGH);
+  
   // Initialize the RAM copy of the non-volatile car data
   NonVolatileCarData eepromCarData;
   GetEepromCarData(eepromCarData);
@@ -131,6 +137,9 @@ SoapBoxDerbyCar::SoapBoxDerbyCar() :
 
   // Center the steering
   CalibrateSteeringPotentiometer();
+  
+  // Give a visual indication that initialization is complete
+  digitalWrite(INITIALIZING_LED_PIN, LOW);
 }
 
 
@@ -144,6 +153,9 @@ void SoapBoxDerbyCar::Run()
 {
   if (IsAutonomousSwitchSet())
   {
+    // In case the manual control LED was on
+    digitalWrite(MANUAL_CONTROL_LED_PIN, LOW);
+      
     Serial.println(F("Auto waiting..."));
 
     // In case we came from manual control, disable motors
@@ -152,6 +164,9 @@ void SoapBoxDerbyCar::Run()
     // Wait until the controller tells auto to start
     while (!m_bMasterEnable)
     {
+      // Update the status light
+      BlinkStatusLight();
+      
       // Be sure to update the controller values
       ReadControllerInput();
       
@@ -187,6 +202,9 @@ void SoapBoxDerbyCar::Run()
   }
   else
   {
+    // Update the status light
+    BlinkStatusLight();
+    
     // Get the latest input values
     ReadControllerInput();
     
@@ -209,11 +227,19 @@ void SoapBoxDerbyCar::Run()
     // Make sure the controller is sending data and check the enable switch
     if (IsControllerOn() && m_bMasterEnable)
     {
+      // Visual indication of state
+      digitalWrite(MANUAL_CONTROL_LED_PIN, HIGH);
+      
       // Update with the user control for steering
       UpdateSpeedControllers();
 
       // Update the state of the brake based on user input
       UpdateBrakeControl();
+    }
+    else
+    {
+      // Visual indication of state
+      digitalWrite(MANUAL_CONTROL_LED_PIN, LOW);
     }
 
     // Log a data entry
