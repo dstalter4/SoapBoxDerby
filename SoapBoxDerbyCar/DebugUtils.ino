@@ -31,7 +31,22 @@
 #include "SoapBoxDerbyCar.hpp"        // for constants and function declarations
 
 // STATIC DATA
-// (none)
+const unsigned int SoapBoxDerbyCar::UNUSED_PINS[] =
+{
+  SERIAL_RX_RESERVED,         SERIAL_TX_RESERVED,
+  PIN_12_RESERVED,            PIN_13_RESERVED,
+  SERIAL_3_TX_RESERVED,       SERIAL_3_RX_RESERVED,
+  SERIAL_2_TX_RESERVED,       SERIAL_2_RX_RESERVED,
+  PIN_21_INTERRUPT_RESERVED,
+  PIN_22_RESERVED,            PIN_23_RESERVED,
+  PIN_24_RESERVED,            PIN_25_RESERVED,
+  PIN_36_RESERVED,            PIN_37_RESERVED,
+  PIN_38_RESERVED,            PIN_39_RESERVED,
+  PIN_40_RESERVED,            PIN_41_RESERVED,
+  PIN_42_RESERVED,            PIN_43_RESERVED,
+  PIN_48_RESERVED,            PIN_49_RESERVED,
+  PIN_50_RESERVED
+};
 
 // GLOBALS
 // (none)
@@ -55,6 +70,13 @@ void SoapBoxDerbyCar::ConfigureDebugPins()
     {
       digitalWrite(i, LOW);
     }
+  }
+
+  // Configure the unused pins to drive them all to known states
+  for (unsigned int i = 0U; i < (sizeof(UNUSED_PINS) / sizeof(UNUSED_PINS[0])); i++)
+  {
+    pinMode(UNUSED_PINS[i], OUTPUT);
+    digitalWrite(UNUSED_PINS[i], LOW);
   }
 }
 
