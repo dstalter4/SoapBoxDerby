@@ -380,6 +380,8 @@ private:
   // Serial ports (Rx/Tx) at pins 0/1 (default), 19/18 (Serial1), 17/16 (Serial2), 15/14 (Serial3)
   
   // DIGITAL PINS
+  static const unsigned int   SERIAL_RX_RESERVED                      = 0;
+  static const unsigned int   SERIAL_TX_RESERVED                      = 1;
   static const unsigned int   CH1_INPUT_PIN                           = 2;    // Derby car yaw control
   static const unsigned int   CH2_INPUT_PIN                           = 3;
   static const unsigned int   CH3_INPUT_PIN                           = 4;
@@ -415,16 +417,28 @@ private:
   static const unsigned int   INITIALIZING_LED_PIN                    = 34;
   static const unsigned int   MANUAL_CONTROL_LED_PIN                  = 34;
   static const unsigned int   AUTONOMOUS_EXECUTING_LED_PIN            = 35;
+  static const unsigned int   PIN_36_RESERVED                         = 36;
+  static const unsigned int   PIN_37_RESERVED                         = 37;
+  static const unsigned int   PIN_38_RESERVED                         = 38;
+  static const unsigned int   PIN_39_RESERVED                         = 39;
+  static const unsigned int   PIN_40_RESERVED                         = 40;
+  static const unsigned int   PIN_41_RESERVED                         = 41;
+  static const unsigned int   PIN_42_RESERVED                         = 42;
+  static const unsigned int   PIN_43_RESERVED                         = 43;
   static const unsigned int   AUTONOMOUS_SWITCH_PIN                   = 44;
   static const unsigned int   SERIAL_TRANSMIT_SWITCH_PIN              = 45;
   static const unsigned int   SWITCH_3_RESERVED                       = 46;
   static const unsigned int   SWITCH_4_RESERVED                       = 47;
+  static const unsigned int   PIN_48_RESERVED                         = 48;
+  static const unsigned int   PIN_49_RESERVED                         = 49;
+  static const unsigned int   PIN_50_RESERVED                         = 50;
   static const unsigned int   STEERING_ENCODER_PIN                    = 51;
   static const unsigned int   SONAR_TRIGGER_PIN                       = 52;
   static const unsigned int   SONAR_ECHO_PIN                          = 53;
 
   static const unsigned int   DEBUG_OUTPUT_LEDS_START_PIN             = LEFT_HALL_SENSOR_LED_PIN;
   static const unsigned int   DEBUG_OUTPUT_LEDS_END_PIN               = AUTONOMOUS_EXECUTING_LED_PIN;
+  static const unsigned int   UNUSED_PINS[];
   
   // ANALOG PINS
   static const unsigned int   FRONT_AXLE_POTENTIOMETER_PIN            = 0;
