@@ -111,11 +111,30 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   inline static SoapBoxDerbyCar * GetSingletonInstance()
   {
-    // @todo: Figure out why this is occasionally tripping.
     // Make sure the instance has been created
-    //ASSERT(m_pSoapBoxDerbyCar != nullptr);
+    ASSERT(m_pSoapBoxDerbyCar != nullptr);
     
     return m_pSoapBoxDerbyCar;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  /// Method: AttachInterruptRoutines
+  ///
+  /// Details:  Attaches the interrupt routines for the soap box derby car.
+  /// Note:     This is a separate function because some ISRs (those for the
+  ///           Hall effect sensors) need the singleton to be created in order
+  ///           to not lock up the board.  It must be ensured that this function
+  ///           is not called until after CreateSingletonInstance().
+  //////////////////////////////////////////////////////////////////////////////
+  inline static void AttachInterruptRoutines()
+  {
+    // Make sure the instance is created
+    ASSERT(m_pSoapBoxDerbyCar != nullptr);
+
+    // Attach the ISRs
+    attachInterrupt(digitalPinToInterrupt(LEFT_HALL_SENSOR_PIN), LeftHallSensorInterruptHandler, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(RIGHT_HALL_SENSOR_PIN), RightHallSensorInterruptHandler, CHANGE);
+    //attachInterrupt(digitalPinToInterrupt(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN), SteeringLimitSwitchInterruptHandler, CHANGE);
   }
 
 private:

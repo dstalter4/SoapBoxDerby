@@ -48,11 +48,6 @@
 void SoapBoxDerbyCar::ConfigureSensors()
 {
   // Configure the sensor pin modes
-  pinMode(AUTONOMOUS_SWITCH_PIN, INPUT_PULLUP);
-  pinMode(SERIAL_TRANSMIT_SWITCH_PIN, INPUT_PULLUP);
-  pinMode(SWITCH_3_RESERVED, INPUT_PULLUP);
-  pinMode(SWITCH_4_RESERVED, INPUT_PULLUP);
-
   pinMode(BRAKE_MAGNET_RELAY_PIN, OUTPUT);
 
   // @todo: There are phantom interrupts being triggered by the limit
@@ -62,15 +57,17 @@ void SoapBoxDerbyCar::ConfigureSensors()
   pinMode(STEERING_LEFT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
   pinMode(STEERING_RIGHT_LIMIT_SWITCH_PIN, INPUT_PULLUP);
   pinMode(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN, INPUT_PULLUP);
-  //attachInterrupt(digitalPinToInterrupt(STEERING_LIMIT_SWITCHES_INTERRUPT_PIN), SteeringLimitSwitchInterruptHandler, CHANGE);
   
   // Even though the Hall sensor pins will be used for interrupts, still
-  // configure them as inputs will pull-up resistors.  The pins will be read in
+  // configure them as inputs with pull-up resistors.  The pins will be read in
   // the ISR and it doesn't hurt interrupt edge detection to set them up this way.
   pinMode(LEFT_HALL_SENSOR_PIN, INPUT_PULLUP);
   pinMode(RIGHT_HALL_SENSOR_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(LEFT_HALL_SENSOR_PIN), LeftHallSensorInterruptHandler, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(RIGHT_HALL_SENSOR_PIN), RightHallSensorInterruptHandler, CHANGE);
+  
+  pinMode(AUTONOMOUS_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(SERIAL_TRANSMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(SWITCH_3_RESERVED, INPUT_PULLUP);
+  pinMode(SWITCH_4_RESERVED, INPUT_PULLUP);
   
   pinMode(STEERING_ENCODER_PIN, INPUT);
   pinMode(SONAR_TRIGGER_PIN, OUTPUT);

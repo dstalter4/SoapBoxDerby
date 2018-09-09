@@ -53,6 +53,9 @@ void setup()
 {  
   // Create the soap box derby car singleton
   SoapBoxDerbyCar::CreateSingletonInstance();
+
+  // Attach the interrupts here because they will use the singleton instance
+  SoapBoxDerbyCar::AttachInterruptRoutines();
 }
 
 
