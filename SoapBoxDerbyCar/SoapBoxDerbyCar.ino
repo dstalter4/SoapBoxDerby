@@ -5,28 +5,7 @@
 /// Details:  Contains the main logic and workflow for a user driven or
 ///           autonomous soap box derby car.
 ///
-/// Edit History:
-/// - dts 19-OCT-2017 Documentation and headers added.
-/// - dts 16-DEC-2017 Enable autonomous logic based on switch state.
-/// - dts 28-DEC-2017 Switched to SoapBoxDerbyCar singleton approach, update
-///                   copyright and add GPL header.
-///
-/// Copyright (c) 2018 David Stalter
-///
-/// This file is part of SoapBoxDerbyCar.
-///
-/// SoapBoxDerbyCar is free software: you can redistribute it and/or modify it
-/// under the terms of the GNU General Public License as published by the Free
-/// Software Foundation, either version 3 of the License, or (at your option)
-/// any later version.
-///
-/// SoapBoxDerbyCar is distributed in the hope that it will be useful, but
-/// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-/// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-/// for more details.
-///
-/// You should have received a copy of the GNU General Public License along with
-/// SoapBoxDerbyCar.  If not, see <http://www.gnu.org/licenses/>.
+/// Copyright (c) 2019 David Stalter
 ////////////////////////////////////////////////////////////////////////////////
 
 // INCLUDES
