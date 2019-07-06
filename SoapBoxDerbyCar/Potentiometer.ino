@@ -5,26 +5,7 @@
 /// Details:  Contains the main logic and workflow for potentiometers on a soap
 ///           box derby car.
 ///
-/// Edit History:
-/// - dts 28-DEC-2017 Created from potentiometer methods in Sensors.ino.
-/// - dts 02-JAN-2018 Silence warnings.
-///
-/// Copyright (c) 2018 David Stalter
-///
-/// This file is part of SoapBoxDerbyCar.
-///
-/// SoapBoxDerbyCar is free software: you can redistribute it and/or modify it
-/// under the terms of the GNU General Public License as published by the Free
-/// Software Foundation, either version 3 of the License, or (at your option)
-/// any later version.
-///
-/// SoapBoxDerbyCar is distributed in the hope that it will be useful, but
-/// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-/// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-/// for more details.
-///
-/// You should have received a copy of the GNU General Public License along with
-/// SoapBoxDerbyCar.  If not, see <http://www.gnu.org/licenses/>.
+/// Copyright (c) 2019 David Stalter
 ////////////////////////////////////////////////////////////////////////////////
 
 // INCLUDES
